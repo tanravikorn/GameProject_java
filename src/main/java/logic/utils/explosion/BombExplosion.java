@@ -1,8 +1,8 @@
-package logic.explosion;
+package logic.utils.explosion;
 
 import logic.board.Board;
+import logic.utils.Point;
 
-import java.awt.*;
 import java.util.List;
 
 public class BombExplosion implements ExplosionStrategy{

@@ -1,9 +1,8 @@
 package logic.candy;
 
 import logic.board.Board;
-import logic.explosion.*;
-
-import java.awt.*;
+import logic.utils.explosion.*;
+import logic.utils.Point;
 import java.util.List;
 public class Candy {
     private int r; //row
@@ -18,7 +17,7 @@ public class Candy {
         setRow(r);
         setIsRemove(false);
         this.color = color;
-        this.type = CandyType.NORMAL;
+        setType(CandyType.NORMAL);
     }
 
     public void setRow(int r){this.r = r;}
@@ -34,15 +33,15 @@ public class Candy {
             default -> this.explosion = new NormalExplosion();
         }
     }
-    public void Explosion(Board board, int r, int c, List<Point> affectCandies){
+    public void performExplosion(Board board, List<Point> affectCandies){
         if(explosion != null){
-            explosion.explode(board, r, c, affectCandies);
+            explosion.explode(board, this.r, this.c, affectCandies);
         }
     }
 
     public int getRow(){return this.r;}
     public int getColumn(){return this.c;}
-    public boolean IsRemove(){return this.isRemove;}
+    public boolean isRemove(){return this.isRemove;}
     public CandyType getType(){return this.type;}
     public CandyColor getColor(){return this.color;}
 

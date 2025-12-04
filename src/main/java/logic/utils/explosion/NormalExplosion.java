@@ -9,5 +9,6 @@ public class NormalExplosion implements ExplosionStrategy{
     @Override
     public void explode(Board board, int r, int c, List<Point> affectedCandies){
         //must implement
+        affectedCandies.add(new Point(r,c));
     }
 }

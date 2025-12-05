@@ -9,7 +9,7 @@ import logic.utils.Point;
 import java.util.Random;
 import java.util.Set;
 
-public class ColorStripedExplosion implements ExplosionStrategy{
+public class ColorStripedExplosion extends ExplosionBase{
     private CandyColor targetColor;
     private final Random random = new Random();
 

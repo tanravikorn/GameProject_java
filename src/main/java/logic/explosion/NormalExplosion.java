@@ -5,7 +5,7 @@ import logic.utils.Point;
 
 import java.util.Set;
 
-public class NormalExplosion implements ExplosionStrategy{
+public class NormalExplosion extends ExplosionBase{
     @Override
     public void explode(Board board, int r, int c, Set<Point> affectedCandies){
         //must implement

@@ -18,10 +18,14 @@ public class CandyMixer {
         boolean isBomb2 = (t2 == CandyType.BOMB);
         boolean isColor1 = (t1 == CandyType.COLOR_BOMB);
         boolean isColor2 = (t2 == CandyType.COLOR_BOMB);
-
         if(isStriped1 && isStriped2) return new CrossExplosion();
-        if ((isStriped1 && isBomb2) || (isBomb1 && isStriped2)) return new BigCrossExplosion();
-        if (isBomb1 && isBomb2) return new BigBombExplosion();
+        if ((isStriped1 && isBomb2) || (isBomb1 && isStriped2)) {
+            Candy stripedCandy = isStriped1 ? c1 : c2;
+            boolean isVer = (stripedCandy.getType() == CandyType.STRIPED_VER);
+            return new LineExplosion(isVer, 1);
+        }
+
+        if (isBomb1 && isBomb2) return new AreaExplosion(2);
 
         if ((isColor1 && isStriped2) || (isStriped1 && isColor2)) {
             ColorStripedExplosion strategy = new ColorStripedExplosion();

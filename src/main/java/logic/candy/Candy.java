@@ -4,6 +4,7 @@ import logic.board.Board;
 import logic.explosion.*;
 import logic.utils.Point;
 
+import javax.sql.rowset.serial.SQLInputImpl;
 import java.util.Set;
 
 public class Candy {
@@ -29,9 +30,9 @@ public class Candy {
     public void setType(CandyType type){
         this.type = type;
         switch (type){
-            case BOMB -> this.explosion = new BombExplosion();
-            case STRIPED_HOR -> this.explosion = new StripedHorExplosion();
-            case STRIPED_VER -> this.explosion = new StripedVerExplosion();
+            case BOMB -> this.explosion = new AreaExplosion(1);
+            case STRIPED_HOR -> this.explosion = new LineExplosion(false);
+            case STRIPED_VER -> this.explosion = new LineExplosion(true);
             case COLOR_BOMB -> this.explosion = new ColorBombExplosion();
             default -> this.explosion = new NormalExplosion();
         }

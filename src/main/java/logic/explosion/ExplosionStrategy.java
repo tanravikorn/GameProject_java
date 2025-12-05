@@ -1,4 +1,4 @@
-package explosion;
+package logic.explosion;
 
 import logic.board.Board;
 import logic.utils.Point;

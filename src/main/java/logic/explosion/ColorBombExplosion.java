@@ -8,7 +8,7 @@ import logic.utils.Point;
 import java.util.Random;
 import java.util.Set;
 
-public class ColorBombExplosion implements ExplosionStrategy{
+public class ColorBombExplosion extends ExplosionBase{
     private CandyColor targetColor = null;
 
     public void setTargetColor(CandyColor color){
@@ -32,7 +32,7 @@ public class ColorBombExplosion implements ExplosionStrategy{
                 Candy target = board.getCandy(row,col);
                 if(target != null && target.getColor() != CandyColor.NONE &&
                         target.getColor() == colorToDestroy){
-                    affectedCandies.add(new Point(row,col));
+                    addAndTrigger(board,row,col,affectedCandies);
                 }
             }
         }

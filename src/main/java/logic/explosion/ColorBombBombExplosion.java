@@ -8,7 +8,7 @@ import logic.utils.Point;
 
 import java.util.Set;
 
-public class ColorBombBombExplosion implements ExplosionStrategy {
+public class ColorBombBombExplosion extends ExplosionBase {
 
     private CandyColor targetColor;
 

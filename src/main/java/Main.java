@@ -44,7 +44,7 @@ public class Main {
 
         // 3. สั่ง MatchFinder ทำงาน
         System.out.println("--- 3. Find Matches ---");
-        List<Candy> matches = MatchFinder.findAllMatches(board);
+        List<Set<Candy>> matches = MatchFinder.findAllMatches(board);
         System.out.println("Found " + matches.size() + " matched candies.");
 
         for (Candy c : matches) {

@@ -25,10 +25,12 @@ public class Board {
         return null;
     }
     public void setCandy(int r, int c, Candy candy){
-        if(candy != null && isValid(r,c)){
+        if(isValid(r,c)){
             this.grid[r][c] = candy;
-            candy.setRow(r);
-            candy.setColumn(c);
+            if(candy != null){
+                candy.setRow(r);
+                candy.setColumn(c);
+            }
         }
     }
 

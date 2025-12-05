@@ -17,7 +17,6 @@ public class Point {
         return r == point.r && c == point.c;
     }
 
-    // ต้องมี hashCode คู่กับ equals เสมอ
     @Override
     public int hashCode() {
         return Objects.hash(r, c);

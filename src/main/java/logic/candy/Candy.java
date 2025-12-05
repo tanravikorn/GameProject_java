@@ -1,7 +1,7 @@
 package logic.candy;
 
-import explosion.*;
 import logic.board.Board;
+import logic.explosion.*;
 import logic.utils.Point;
 
 import java.util.Set;
@@ -32,6 +32,7 @@ public class Candy {
             case BOMB -> this.explosion = new BombExplosion();
             case STRIPED_HOR -> this.explosion = new StripedHorExplosion();
             case STRIPED_VER -> this.explosion = new StripedVerExplosion();
+            case COLOR_BOMB -> this.explosion = new ColorBombExplosion();
             default -> this.explosion = new NormalExplosion();
         }
     }
@@ -40,7 +41,11 @@ public class Candy {
             explosion.explode(board, this.r, this.c, affectCandies);
         }
     }
-
+    public void prepareColorBomb(CandyColor color){
+        if(this.explosion instanceof ColorBombExplosion){
+            ((ColorBombExplosion) explosion).setTargetColor(color);
+        }
+    }
     public int getRow(){return this.r;}
     public int getColumn(){return this.c;}
     public boolean isRemove(){return this.isRemove;}

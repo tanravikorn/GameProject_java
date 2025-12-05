@@ -5,5 +5,6 @@ public enum CandyType {
     STRIPED_HOR,
     STRIPED_VER,
     BOMB,
+    COLOR_BOMB
 }
 

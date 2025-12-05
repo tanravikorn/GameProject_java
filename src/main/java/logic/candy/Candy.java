@@ -1,9 +1,11 @@
 package logic.candy;
 
+import explosion.*;
 import logic.board.Board;
-import logic.utils.explosion.*;
 import logic.utils.Point;
-import java.util.List;
+
+import java.util.Set;
+
 public class Candy {
     private int r; //row
     private int c; //column
@@ -33,7 +35,7 @@ public class Candy {
             default -> this.explosion = new NormalExplosion();
         }
     }
-    public void performExplosion(Board board, List<Point> affectCandies){
+    public void performExplosion(Board board, Set<Point> affectCandies){
         if(explosion != null){
             explosion.explode(board, this.r, this.c, affectCandies);
         }

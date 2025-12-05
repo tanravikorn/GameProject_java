@@ -1,14 +1,14 @@
-package logic.utils.explosion;
+package explosion;
 
 import logic.board.Board;
 import logic.utils.Point;
 
-import java.util.List;
+import java.util.Set;
 
 public class BombExplosion implements ExplosionStrategy{
 
     @Override
-    public void explode(Board board, int r, int c, List<Point> affectCandies){
+    public void explode(Board board, int r, int c, Set<Point> affectCandies){
         //must implement
         for(int row = r-1;row <= r+1;row++){
             for(int col = c -1;col <= c+1;col++){

@@ -1,5 +1,6 @@
 package logic.utils;
 
+import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyType;
 
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 public class MatchProcessor {
-    public static Set<Point> processMatches(List<Set<Candy>> clusters, Candy swappedCandy){
+    public static Set<Point> processMatches(Board board, List<Set<Candy>> clusters, Candy swappedCandy){
         Set<Point> removes = new HashSet<>();
         for(Set<Candy> cluster : clusters){
             CandyType reward  = SpecialCandyRules.analyzeShape(cluster);
@@ -23,15 +24,25 @@ public class MatchProcessor {
                 candyReward.setType(reward);
                 for(Candy c : cluster){
                     if(!c.equals(candyReward)){
-                        removes.add(new Point(c.getRow(), c.getColumn()));
+                        handleRemove(board, c, removes);
                     }
                 }
             }else{
                 for(Candy c : cluster){
-                    removes.add(new Point(c.getRow(), c.getColumn()));
+                    handleRemove(board, c, removes);
                 }
             }
         }
         return removes;
     }
+
+    private static void handleRemove(Board board, Candy c, Set<Point> removes){
+        if(c.getType() != CandyType.NORMAL){
+            c.performExplosion(board, removes);
+        }
+        else {
+            removes.add(new Point(c.getRow(), c.getColumn()));
+        }
+    }
 }
+

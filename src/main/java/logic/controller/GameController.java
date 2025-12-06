@@ -57,7 +57,7 @@ public class GameController {
             matches.addAll(matchFinder.findMatchAt(r2, c2));
 
             if (!matches.isEmpty()) {
-                removes.addAll(MatchProcessor.processMatches(matches, candy2));
+                removes.addAll(MatchProcessor.processMatches(board,matches, candy2));
             }
         }
         if (removes.isEmpty()) {
@@ -84,7 +84,7 @@ public class GameController {
         List<Set<Candy>> matches = matchFinder.findAllMatches();
 
         if (!matches.isEmpty()) {
-            newRemoves.addAll(MatchProcessor.processMatches(matches, null));
+            newRemoves.addAll(MatchProcessor.processMatches(board,matches, null));
             score += newRemoves.size() * 100;
         }
         return newRemoves;

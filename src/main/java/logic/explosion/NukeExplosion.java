@@ -1,6 +1,7 @@
 package logic.explosion;
 
 import logic.board.Board;
+import logic.candy.Candy;
 import logic.utils.Point;
 
 import java.util.Set;
@@ -11,6 +12,11 @@ public class NukeExplosion extends ExplosionBase{
         for(int row = 0;row < board.getRows(); row++){
             for(int col=0;col < board.getCols();col++){
                 if(board.getCandy(row,col) != null){
+                    if(board.getCandy(row,col).isFrozen()){
+                        Candy target = board.getCandy(row,col);
+                        target.setFrozen(false);
+                        continue;
+                    }
                     affectedCandies.add(new Point(row,col));
                 }
             }

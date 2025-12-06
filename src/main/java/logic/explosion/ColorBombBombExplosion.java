@@ -24,9 +24,12 @@ public class ColorBombBombExplosion extends ExplosionBase {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Candy target = board.getCandy(row, col);
-                if (target != null && target != base && target.getColor() == this.targetColor) {
+                if (target != null && target != base && target.getColor() == this.targetColor &&
+                    !target.isFrozen()) {
                     target.setType(CandyType.BOMB);
                     target.performExplosion(board, affectedCandies);
+                }else if(target != null && target.isFrozen() && target.getColor() == this.targetColor){
+                    target.setFrozen(false);
                 }
             }
         }

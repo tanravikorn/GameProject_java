@@ -27,25 +27,17 @@ public class MatchProcessor {
                 candyReward.setType(reward);
                 for(Candy c : cluster){
                     if(!c.equals(candyReward)){
-                        handleRemove(board, c, removes);
+                        c.performExplosion(board, removes);
                     }
                 }
             }else{
                 for(Candy c : cluster){
-                    handleRemove(board, c, removes);
+                    c.performExplosion(board, removes);
                 }
             }
         }
         return removes;
     }
 
-    private static void handleRemove(Board board, Candy c, Set<Point> removes){
-        if(c.getType() != CandyType.NORMAL){
-            c.performExplosion(board, removes);
-        }
-        else {
-            removes.add(new Point(c.getRow(), c.getColumn()));
-        }
-    }
 }
 

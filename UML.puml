@@ -1,4 +1,4 @@
-@startuml
+ุึึึ@startuml
 class logic.controller.GameController {
 }
 interface logic.explosion.ExplosionStrategy {

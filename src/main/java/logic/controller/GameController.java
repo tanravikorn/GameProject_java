@@ -37,25 +37,35 @@ public class GameController {
 
     }
 
-    public void handleSwap(int r1, int c1, int r2,int c2){
-        if(gameState != GameState.PLAY) return;
+    public Set<Point> handleSwap(int r1, int c1, int r2,int c2){
+        if(gameState != GameState.PLAY) return new HashSet<>();
 
-        if(!board.isValid(r1,c1) || !board.isValid(r2,c2)) return;
+        if(!board.isValid(r1,c1) || !board.isValid(r2,c2)) return new HashSet<>();
 
         Candy candy1 = board.getCandy(r1,c1);
         Candy candy2 = board.getCandy(r2,c2);
-        this.gameState = GameState.PROCESS;
         performSwap(r1,c1,r2,c2);
-        boolean canSwap = processTurn(candy1,candy2);
+        Set<Point> removes = new HashSet<>();
+        ExplosionStrategy combo = CandyMixer.getComboExplosion(candy1, candy2);
 
+        if (combo != null) {
+            combo.explode(board, candy2.getRow(), candy2.getColumn(), removes);
+            removes.add(new Point(candy1.getRow(), candy1.getColumn()));
+        } else {
+            List<Set<Candy>> matches = new ArrayList<>();
+            matches.addAll(matchFinder.findMatchAt(r1, c1));
+            matches.addAll(matchFinder.findMatchAt(r2, c2));
 
-        if(!canSwap){
-            performSwap(r1,c1,r2,c2);
-        }else{
-            endTurn();
+            if (!matches.isEmpty()) {
+                removes.addAll(MatchProcessor.processMatches(matches, candy2));
+            }
         }
-
-        this.gameState = GameState.PLAY;
+        if (removes.isEmpty()) {
+            performSwap(r1, c1, r2, c2);
+        } else {
+            score += removes.size() * 100;
+        }
+        return removes;
     }
 
     private void performSwap(int r1,int c1,int r2,int c2){
@@ -66,40 +76,53 @@ public class GameController {
         board.setCandy(r2,c2,candy1);
     }
 
-
-    private boolean processTurn(Candy c1, Candy c2){
-        boolean event = false;
-        Set<Point> removes = new HashSet<>();
-        ExplosionStrategy combo = CandyMixer.getComboExplosion(c1,c2);
-        if(combo != null){
-            combo.explode(board,c2.getRow(),c2.getColumn(), removes);
-            removes.add(new Point(c1.getRow(),c1.getColumn()));
-            event = true;
-        }else{
-            List<Set<Candy>> matches = new ArrayList<>();
-            matches.addAll(matchFinder.findMatchAt(c1.getRow(), c1.getColumn()));
-            matches.addAll(matchFinder.findMatchAt(c2.getRow(), c2.getColumn()));
-            if(!matches.isEmpty()){
-                Set<Point> matchesPoint = MatchProcessor.processMatches(matches,c2);
-                removes.addAll(matchesPoint);
-                event = true;
-            }
-        }
-
-        if(removes.isEmpty()) return false;
-
-        while(!removes.isEmpty()){
-            score += removes.size() * 100;
-            BoardUpdater.updateBoard(board, removes);
-            removes.clear();
-            List<Set<Candy>> chainMatches = matchFinder.findAllMatches();
-            if(!chainMatches.isEmpty()){
-                Set<Point> chainDeaths = MatchProcessor.processMatches(chainMatches, null);
-                removes.addAll(chainDeaths);
-            }
-        }
-        return true;
+    public void applyPhysics(Set<Point> removes) {
+        BoardUpdater.updateBoard(board, removes);
     }
+    public Set<Point> checkChainReaction() {
+        Set<Point> newRemoves = new HashSet<>();
+        List<Set<Candy>> matches = matchFinder.findAllMatches();
+
+        if (!matches.isEmpty()) {
+            newRemoves.addAll(MatchProcessor.processMatches(matches, null));
+            score += newRemoves.size() * 100;
+        }
+        return newRemoves;
+    }
+
+//    private boolean processTurn(Candy c1, Candy c2){
+//        boolean event = false;
+//        Set<Point> removes = new HashSet<>();
+//        ExplosionStrategy combo = CandyMixer.getComboExplosion(c1,c2);
+//        if(combo != null){
+//            combo.explode(board,c2.getRow(),c2.getColumn(), removes);
+//            removes.add(new Point(c1.getRow(),c1.getColumn()));
+//            event = true;
+//        }else{
+//            List<Set<Candy>> matches = new ArrayList<>();
+//            matches.addAll(matchFinder.findMatchAt(c1.getRow(), c1.getColumn()));
+//            matches.addAll(matchFinder.findMatchAt(c2.getRow(), c2.getColumn()));
+//            if(!matches.isEmpty()){
+//                Set<Point> matchesPoint = MatchProcessor.processMatches(matches,c2);
+//                removes.addAll(matchesPoint);
+//                event = true;
+//            }
+//        }
+//
+//        if(removes.isEmpty()) return false;
+//
+//        while(!removes.isEmpty()){
+//            score += removes.size() * 100;
+//            BoardUpdater.updateBoard(board, removes);
+//            removes.clear();
+//            List<Set<Candy>> chainMatches = matchFinder.findAllMatches();
+//            if(!chainMatches.isEmpty()){
+//                Set<Point> chainDeaths = MatchProcessor.processMatches(chainMatches, null);
+//                removes.addAll(chainDeaths);
+//            }
+//        }
+//        return true;
+//    }
 
     private void endTurn(){
         if(!matchFinder.hasPotentialMatch()){

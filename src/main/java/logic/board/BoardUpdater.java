@@ -84,19 +84,29 @@ public class BoardUpdater {
         }
     }
 
-    private static void applyGravityColumn(Board board,int rows,int col){
+    private static void applyGravityColumn(Board board, int rows, int col) {
         int writeRow = rows - 1;
-        for(int r = rows -1; r >=0; r--){
-            Candy current = board.getCandy(r,col);
-            if(current != null){
-                board.setCandy(writeRow,col,current);
+        for (int r = rows - 1; r >= 0; r--) {
+            Candy current = board.getCandy(r, col);
+            if (current != null && current.isFrozen()) {
+                while (writeRow > r) {
+                    board.setCandy(writeRow, col, null);
+                    writeRow--;
+                }
+                writeRow = r - 1;
+            }
+            else if (current != null) {
+                board.setCandy(writeRow, col, current);
+//                if (writeRow != r) {
+//                    board.setCandy(r, col, null);
+//                }
                 writeRow--;
             }
         }
-        while (writeRow >= 0){
-            board.setCandy(writeRow,col,null);
+
+        while (writeRow >= 0) {
+            board.setCandy(writeRow, col, null);
             writeRow--;
         }
-
     }
 }

@@ -38,7 +38,6 @@ public class Main {
 
         // *ลองเปลี่ยน c2 เป็นระเบิดลายทางดู* (เพื่อเทส Polymorphism)
         c2.setType(CandyType.STRIPED_VER); // ให้ตัวกลางเป็นระเบิดแนวตั้ง
-
         board.setCandy(0, 0, c1);
         board.setCandy(0, 1, c2);
         board.setCandy(0, 2, c3);

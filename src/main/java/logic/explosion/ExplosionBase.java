@@ -16,9 +16,11 @@ public abstract class ExplosionBase implements ExplosionStrategy {
         if (target == null || affectedCandies.contains(p)) {
             return;
         }
-        affectedCandies.add(p);
-        if (target.getType() != CandyType.NORMAL) {
-            target.performExplosion(board, affectedCandies);
+        if(target.isFrozen()){
+            target.setFrozen(false);
+            return;
         }
+        affectedCandies.add(p);
+        target.performExplosion(board, affectedCandies);
     }
 }

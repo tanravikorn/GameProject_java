@@ -14,19 +14,30 @@ public class MatchProcessor {
         for(Set<Candy> cluster : clusters){
             CandyType reward  = SpecialCandyRules.analyzeShape(cluster);
             if(reward != CandyType.NORMAL){
-                Candy candyReward;
-                if(swappedCandy != null && cluster.contains(swappedCandy)){
+                Candy candyReward = null;
+                if(swappedCandy != null && cluster.contains(swappedCandy) && !swappedCandy.isFrozen()){
                     candyReward = swappedCandy;
                 }else{
-                    candyReward = cluster.iterator().next();
+                    for(Candy c : cluster){
+                        if(!c.isFrozen()){
+                            candyReward = c;
+                            break;
+                        }
+                    }
                 }
-                if(candyReward.getType() != CandyType.NORMAL){
-                    candyReward.performExplosion(board,removes);
-                    removes.remove(new Point(candyReward.getRow(), candyReward.getColumn()));
-                }
-                candyReward.setType(reward);
-                for(Candy c : cluster){
-                    if(!c.equals(candyReward)){
+                if(candyReward != null){
+                    if(candyReward.getType() != CandyType.NORMAL){
+                        candyReward.performExplosion(board,removes);
+                        removes.remove(new Point(candyReward.getRow(), candyReward.getColumn()));
+                    }
+                    candyReward.setType(reward);
+                    for(Candy c : cluster){
+                        if(!c.equals(candyReward)){
+                            c.performExplosion(board, removes);
+                        }
+                    }
+                }else {
+                    for(Candy c : cluster){
                         c.performExplosion(board, removes);
                     }
                 }

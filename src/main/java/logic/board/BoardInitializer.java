@@ -2,19 +2,22 @@ package logic.board;
 
 import logic.candy.Candy;
 import logic.candy.CandyColor;
+import logic.controller.GameController;
+import logic.controller.GameMode;
 import logic.utils.MatchFinder;
 
 import java.util.Random;
 
 public class BoardInitializer {
     private static final Random random = new Random();
+    private boolean isHard;
 
-    public static void initialize(Board board, MatchFinder matchFinder){
+    public static void initialize(Board board, MatchFinder matchFinder, GameMode gameMode){
         do{
-            fillBoardNoInitialMatches(board);
+            fillBoardNoInitialMatches(board, gameMode);
         }while (!matchFinder.hasPotentialMatch());
     }
-    private static void fillBoardNoInitialMatches(Board board){
+    private static void fillBoardNoInitialMatches(Board board, GameMode gameMode){
         int rows = board.getRows();
         int cols = board.getCols();
 
@@ -24,8 +27,13 @@ public class BoardInitializer {
                 do{
                     color = getRandomColor();
                 }while (isCreatingMatch(board,r,c,color));
-
-                board.setCandy(r,c, new Candy(r,c,color));
+                Candy newCandy = new Candy(r,c,color);
+                if(gameMode == GameMode.HARD){
+                    if (Math.random() < 0.1) { // โอกาส 10%
+                        newCandy.setFrozen(true);
+                    }
+                }
+                board.setCandy(r,c, newCandy);
             }
         }
     }

@@ -19,6 +19,7 @@ import logic.candy.Candy;
 import logic.candy.CandyColor;
 import logic.candy.CandyType; // Import นี้สำคัญ
 import logic.controller.GameController;
+import logic.controller.GameMode;
 import logic.utils.Point;
 
 import java.util.Set;
@@ -43,7 +44,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        controller = new GameController(ROWS, COLS);
+        controller = new GameController(ROWS, COLS, GameMode.NORMAL);
 
         BorderPane root = new BorderPane();
         gridPane = new GridPane();

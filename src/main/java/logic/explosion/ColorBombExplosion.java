@@ -31,8 +31,10 @@ public class ColorBombExplosion extends ExplosionBase{
             for(int col = 0;col < cols;col++){
                 Candy target = board.getCandy(row,col);
                 if(target != null && target.getColor() != CandyColor.NONE &&
-                        target.getColor() == colorToDestroy){
+                        target.getColor() == colorToDestroy && !target.isFrozen()){
                     addAndTrigger(board,row,col,affectedCandies);
+                }else if(target != null && target.isFrozen() && target.getColor() == colorToDestroy){
+                    target.setFrozen(false);
                 }
             }
         }

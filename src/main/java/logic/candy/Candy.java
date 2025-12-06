@@ -14,6 +14,7 @@ public class Candy {
     private CandyColor color;
     private CandyType type;
     private ExplosionStrategy explosion;
+    private boolean isFrozen;
 
     public Candy(int r, int c, CandyColor color){
         setColumn(c);
@@ -21,6 +22,7 @@ public class Candy {
         setIsRemove(false);
         this.color = color;
         setType(CandyType.NORMAL);
+        setFrozen(false);
     }
 
     public void setRow(int r){this.r = r;}
@@ -53,4 +55,6 @@ public class Candy {
     public CandyType getType(){return this.type;}
     public CandyColor getColor(){return this.color;}
 
+    public boolean isFrozen() {return isFrozen;}
+    public void setFrozen(boolean frozen) {isFrozen = frozen;}
 }

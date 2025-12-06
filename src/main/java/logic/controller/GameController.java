@@ -19,22 +19,21 @@ public class GameController {
     private Board board;
     private MatchFinder matchFinder;
     private GameState gameState;
-
+    private GameMode gameMode;
     private int score;
     private int moveLeft;
 
-    public GameController(int rows, int cols){
+    public GameController(int rows, int cols, GameMode mode){
         this.board = new Board(rows, cols);
         this.matchFinder = new MatchFinder(board);
-
+        this.gameMode = mode;
         initializeGame();
     }
 
     public void initializeGame(){
-        BoardInitializer.initialize(board, matchFinder);
+        BoardInitializer.initialize(board, matchFinder, gameMode);
         this.score = 0;
         this.gameState = GameState.PLAY;
-
     }
 
     public Set<Point> handleSwap(int r1, int c1, int r2,int c2){
@@ -44,6 +43,9 @@ public class GameController {
 
         Candy candy1 = board.getCandy(r1,c1);
         Candy candy2 = board.getCandy(r2,c2);
+        if(candy1 != null && candy1.isFrozen() || candy2 != null && candy2.isFrozen()){
+            return new HashSet<>();
+        }
         performSwap(r1,c1,r2,c2);
         Set<Point> removes = new HashSet<>();
         ExplosionStrategy combo = CandyMixer.getComboExplosion(candy1, candy2);
@@ -89,41 +91,6 @@ public class GameController {
         }
         return newRemoves;
     }
-
-//    private boolean processTurn(Candy c1, Candy c2){
-//        boolean event = false;
-//        Set<Point> removes = new HashSet<>();
-//        ExplosionStrategy combo = CandyMixer.getComboExplosion(c1,c2);
-//        if(combo != null){
-//            combo.explode(board,c2.getRow(),c2.getColumn(), removes);
-//            removes.add(new Point(c1.getRow(),c1.getColumn()));
-//            event = true;
-//        }else{
-//            List<Set<Candy>> matches = new ArrayList<>();
-//            matches.addAll(matchFinder.findMatchAt(c1.getRow(), c1.getColumn()));
-//            matches.addAll(matchFinder.findMatchAt(c2.getRow(), c2.getColumn()));
-//            if(!matches.isEmpty()){
-//                Set<Point> matchesPoint = MatchProcessor.processMatches(matches,c2);
-//                removes.addAll(matchesPoint);
-//                event = true;
-//            }
-//        }
-//
-//        if(removes.isEmpty()) return false;
-//
-//        while(!removes.isEmpty()){
-//            score += removes.size() * 100;
-//            BoardUpdater.updateBoard(board, removes);
-//            removes.clear();
-//            List<Set<Candy>> chainMatches = matchFinder.findAllMatches();
-//            if(!chainMatches.isEmpty()){
-//                Set<Point> chainDeaths = MatchProcessor.processMatches(chainMatches, null);
-//                removes.addAll(chainDeaths);
-//            }
-//        }
-//        return true;
-//    }
-
     private void endTurn(){
         if(!matchFinder.hasPotentialMatch()){
             do{
@@ -143,5 +110,12 @@ public class GameController {
     }
     public int getScore() {
         return score;
+    }
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
+    public void setGameMode(GameMode gameMode) {
+        this.gameMode = gameMode;
     }
 }

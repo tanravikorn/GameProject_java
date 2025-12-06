@@ -97,9 +97,6 @@ public class BoardUpdater {
             }
             else if (current != null) {
                 board.setCandy(writeRow, col, current);
-//                if (writeRow != r) {
-//                    board.setCandy(r, col, null);
-//                }
                 writeRow--;
             }
         }

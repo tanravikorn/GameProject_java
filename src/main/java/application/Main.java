@@ -1,5 +1,6 @@
 package application;
 
+import javafx.animation.PauseTransition;
 import logic.controller.GameController;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -15,13 +16,17 @@ import javafx.stage.Stage;
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyType;
+import logic.utils.Point;
+import javafx.util.Duration;
+
+import java.util.Set;
 
 public class Main extends Application {
 
     private static final int ROWS = 9;
     private static final int COLS = 9;
     private static final int TILE_SIZE = 60;
-
+    private boolean isAnimating = false;
     private GameController controller;
     private GridPane gridPane;
     private Label scoreLabel;
@@ -106,31 +111,67 @@ public class Main extends Application {
     }
 
     private void handleTileClick(int r, int c) {
+        if (isAnimating) return; // ถ้ากำลังเล่น Animation ห้ามกด!
+
         if (selectedRow == -1) {
-            // คลิกครั้งแรก: เลือก
             selectedRow = r;
             selectedCol = c;
+            updateView(); // เพื่อโชว์ highlight
         } else {
-            // คลิกครั้งที่สอง: สลับ (Swap)
-            // เช็คว่าเป็นช่องติดกันมั้ย (ถ้าจะเอาเคร่งครัด) หรือส่งไปให้ Controller เช็คก็ได้
             if (Math.abs(selectedRow - r) + Math.abs(selectedCol - c) == 1) {
-                System.out.println("Swapping: (" + selectedRow + "," + selectedCol + ") <-> (" + r + "," + c + ")");
+                // 1. สั่ง Controller ให้สลับ
+                Set<Point> removes = controller.handleSwap(selectedRow, selectedCol, r, c);
 
-                // 🔥 เรียก Logic หลักตรงนี้!
-                // มันจะคำนวณรวดเดียวจบ (ยังไม่มี Animation)
-                controller.handleSwap(selectedRow, selectedCol, r, c);
-
-                // Reset การเลือก
+                if (!removes.isEmpty()) {
+                    // ถ้ามีการระเบิด -> เริ่มเล่นหนัง (Animation Loop)
+                    isAnimating = true;
+                    runGameLoop(removes);
+                } else {
+                    System.out.println("Invalid Move");
+                }
                 selectedRow = -1;
                 selectedCol = -1;
+                updateView();
             } else {
-                // ถ้าคลิกตัวเดิม หรือตัวไกลๆ ให้เลือกตัวใหม่แทน
                 selectedRow = r;
                 selectedCol = c;
+                updateView();
             }
         }
-        // วาดหน้าจอใหม่ทันที เพื่อดูผลลัพธ์
+    }
+    private void runGameLoop(Set<Point> removes) {
+        // Step 1: วาดภาพระเบิด (ตอนนี้ของยังอยู่ แต่เตรียมหาย)
         updateView();
+
+        // สร้าง Delay 0.5 วินาที ก่อนจะให้ของตกลงมา
+        PauseTransition waitBeforeFall = new PauseTransition(Duration.seconds(0.5));
+
+        waitBeforeFall.setOnFinished(e -> {
+            // Step 2: สั่ง Backend ให้คำนวณ Gravity & Refill
+            controller.applyPhysics(removes);
+            updateView(); // ผู้เล่นจะเห็นของตกลงมาและของใหม่เติมเข้ามาตอนนี้
+
+            // สร้าง Delay อีก 0.5 วินาที ก่อนจะเช็คระเบิดรอบถัดไป
+            PauseTransition waitBeforeNextMatch = new PauseTransition(Duration.seconds(0.5));
+
+            waitBeforeNextMatch.setOnFinished(e2 -> {
+                // Step 3: เช็ค Chain Reaction
+                Set<Point> newRemoves = controller.checkChainReaction();
+
+                if (!newRemoves.isEmpty()) {
+                    // ถ้ามีระเบิดต่อ -> วนลูปเรียกตัวเองซ้ำ! (Recursion)
+                    runGameLoop(newRemoves);
+                } else {
+                    // ถ้านิ่งแล้ว -> จบ Animation ปลดล็อคให้ผู้เล่นกดต่อได้
+                    isAnimating = false;
+                    System.out.println("Board Settled.");
+                }
+            });
+
+            waitBeforeNextMatch.play();
+        });
+
+        waitBeforeFall.play();
     }
 
     // แปลง CandyColor ของเรา เป็น JavaFX Color

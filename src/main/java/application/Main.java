@@ -1,3 +1,5 @@
+package application;
+
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;
@@ -5,7 +7,6 @@ import logic.candy.CandyType;
 import logic.utils.MatchFinder;
 import logic.utils.Point;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

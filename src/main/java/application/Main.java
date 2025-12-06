@@ -1,7 +1,6 @@
 package application;
 
 import javafx.animation.PauseTransition;
-import logic.controller.GameController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -13,11 +12,14 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import logic.board.Board;
 import logic.candy.Candy;
+import logic.candy.CandyColor;
 import logic.candy.CandyType;
+import logic.controller.GameController; // เช็ค package
 import logic.utils.Point;
-import javafx.util.Duration;
 
 import java.util.Set;
 
@@ -26,12 +28,12 @@ public class Main extends Application {
     private static final int ROWS = 9;
     private static final int COLS = 9;
     private static final int TILE_SIZE = 60;
-    private boolean isAnimating = false;
+
     private GameController controller;
     private GridPane gridPane;
     private Label scoreLabel;
 
-    // เก็บสถานะการคลิก (Click แรกเลือกตัว, Click สองสลับ)
+    private boolean isAnimating = false;
     private int selectedRow = -1;
     private int selectedCol = -1;
 
@@ -41,29 +43,25 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // 1. Initialize Controller
         controller = new GameController(ROWS, COLS);
 
-        // 2. Setup GUI Layout
         BorderPane root = new BorderPane();
         gridPane = new GridPane();
         scoreLabel = new Label("Score: 0");
-        scoreLabel.setStyle("-fx-font-size: 20px; -fx-padding: 10;");
+        scoreLabel.setStyle("-fx-font-size: 24px; -fx-padding: 10; -fx-font-weight: bold;");
 
         root.setCenter(gridPane);
         root.setTop(scoreLabel);
 
-        // 3. วาดกระดานครั้งแรก
-        updateView();
+        updateView(null);
 
-        Scene scene = new Scene(root, COLS * TILE_SIZE, ROWS * TILE_SIZE + 50);
-        primaryStage.setTitle("Candy Crush Logic Test");
+        Scene scene = new Scene(root, COLS * TILE_SIZE, ROWS * TILE_SIZE + 60);
+        primaryStage.setTitle("Candy Crush Demo");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    // เมธอดวาดกระดานใหม่ตามข้อมูลใน Board
-    private void updateView() {
+    private void updateView(Set<Point> hiddenCandies) {
         gridPane.getChildren().clear();
         Board board = controller.getBoard();
 
@@ -72,34 +70,34 @@ public class Main extends Application {
                 StackPane tile = new StackPane();
                 tile.setPrefSize(TILE_SIZE, TILE_SIZE);
 
-                // พื้นหลังตาราง (ลายตารางหมากรุก)
                 Rectangle bg = new Rectangle(TILE_SIZE, TILE_SIZE);
-                bg.setFill((r + c) % 2 == 0 ? Color.LIGHTGRAY : Color.GRAY);
+                bg.setFill((r + c) % 2 == 0 ? Color.LIGHTGRAY : Color.DARKGRAY);
                 bg.setStroke(Color.BLACK);
-
                 tile.getChildren().add(bg);
 
                 Candy candy = board.getCandy(r, c);
-                if (candy != null) {
-                    // วาดลูกอม (วงกลม)
-                    Circle circle = new Circle(TILE_SIZE / 2 - 5);
-                    circle.setFill(getColor(candy.getColor()));
+                // เช็คว่าต้องซ่อนมั้ย (Visual Trick)
+                boolean shouldHide = (hiddenCandies != null && hiddenCandies.contains(new Point(r, c)));
 
-                    // ใส่ Text บอกประเภท (N=Normal, H=Hor, V=Ver, B=Bomb, C=Color)
+                if (candy != null && !shouldHide) {
+                    Circle circle = new Circle(TILE_SIZE / 2 - 8);
+                    circle.setFill(getColor(candy.getColor()));
+                    circle.setStroke(Color.BLACK);
+                    circle.setStrokeWidth(2);
+
                     String typeText = getTypeCode(candy.getType());
                     Text text = new Text(typeText);
+                    text.setFill(Color.WHITE);
                     text.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
                     tile.getChildren().addAll(circle, text);
                 }
 
-                // Highlight ตัวที่เลือก
                 if (r == selectedRow && c == selectedCol) {
                     bg.setStroke(Color.YELLOW);
-                    bg.setStrokeWidth(3);
+                    bg.setStrokeWidth(4);
                 }
 
-                // Event: เมื่อคลิกที่ช่อง
                 int finalR = r;
                 int finalC = c;
                 tile.setOnMouseClicked(e -> handleTileClick(finalR, finalC));
@@ -110,91 +108,120 @@ public class Main extends Application {
         scoreLabel.setText("Score: " + controller.getScore());
     }
 
+    // ใน Main.java
+
     private void handleTileClick(int r, int c) {
-        if (isAnimating) return; // ถ้ากำลังเล่น Animation ห้ามกด!
+        if (isAnimating) return;
 
         if (selectedRow == -1) {
             selectedRow = r;
             selectedCol = c;
-            updateView(); // เพื่อโชว์ highlight
+            updateView(null);
         } else {
             if (Math.abs(selectedRow - r) + Math.abs(selectedCol - c) == 1) {
-                // 1. สั่ง Controller ให้สลับ
+                // 1. สั่ง Controller สลับ (Backend สลับค่าใน Grid แล้ว)
                 Set<Point> removes = controller.handleSwap(selectedRow, selectedCol, r, c);
 
                 if (!removes.isEmpty()) {
-                    // ถ้ามีการระเบิด -> เริ่มเล่นหนัง (Animation Loop)
                     isAnimating = true;
-                    runGameLoop(removes);
+
+                    // ✅ [เพิ่มตรงนี้] PHASE 0: โชว์การสลับก่อน!
+                    // วาดกระดานปกติ (ยังไม่ซ่อนอะไร) เพื่อให้เห็นว่าลูกอมสลับที่กันแล้ว
+                    updateView(null);
+
+                    // รอ 0.3 วินาที ให้ตาคนมองทัน
+                    PauseTransition waitSwap = new PauseTransition(Duration.seconds(0.3));
+
+                    waitSwap.setOnFinished(e -> {
+                        // พอครบเวลา ค่อยเริ่มเข้าลูประเบิด (ที่จะทำให้เกิดรูโหว่)
+                        runGameLoop(removes);
+                    });
+                    waitSwap.play();
+
                 } else {
                     System.out.println("Invalid Move");
+                    // เพิ่ม visual feedback ว่าสลับไม่ได้ตรงนี้ก็ได้
                 }
+
                 selectedRow = -1;
                 selectedCol = -1;
-                updateView();
+                // updateView(null); <--- ลบบรรทัดนี้ออก หรือใส่ไว้ใน else ของ invalid move ก็ได้
+                if (removes.isEmpty()) updateView(null); // อัปเดตเฉพาะถ้าไม่ระเบิด (ถ้าระเบิดเราจัดการใน waitSwap แล้ว)
             } else {
                 selectedRow = r;
                 selectedCol = c;
-                updateView();
+                updateView(null);
             }
         }
     }
+
+    // 🔥 Animation Loop ที่ปลอดภัยขึ้น
     private void runGameLoop(Set<Point> removes) {
-        // Step 1: วาดภาพระเบิด (ตอนนี้ของยังอยู่ แต่เตรียมหาย)
-        updateView();
+        try {
+            // PHASE 1: ระเบิด (Visual Holes)
+            updateView(removes);
 
-        // สร้าง Delay 0.5 วินาที ก่อนจะให้ของตกลงมา
-        PauseTransition waitBeforeFall = new PauseTransition(Duration.seconds(0.5));
+            PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.5));
+            waitExplosion.setOnFinished(e -> {
+                try {
+                    // PHASE 2: Physics (Backend ทำงาน)
+                    controller.applyPhysics(removes);
 
-        waitBeforeFall.setOnFinished(e -> {
-            // Step 2: สั่ง Backend ให้คำนวณ Gravity & Refill
-            controller.applyPhysics(removes);
-            updateView(); // ผู้เล่นจะเห็นของตกลงมาและของใหม่เติมเข้ามาตอนนี้
+                    updateView(null); // วาดของใหม่
 
-            // สร้าง Delay อีก 0.5 วินาที ก่อนจะเช็คระเบิดรอบถัดไป
-            PauseTransition waitBeforeNextMatch = new PauseTransition(Duration.seconds(0.5));
+                    PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.5));
+                    waitGravity.setOnFinished(e2 -> {
+                        try {
+                            // PHASE 3: Check Chain Reaction
+                            Set<Point> newRemoves = controller.checkChainReaction();
 
-            waitBeforeNextMatch.setOnFinished(e2 -> {
-                // Step 3: เช็ค Chain Reaction
-                Set<Point> newRemoves = controller.checkChainReaction();
+                            if (!newRemoves.isEmpty()) {
+                                // Recursion: วนลูปถ้ามีระเบิดต่อ
+                                runGameLoop(newRemoves);
+                            } else {
+                                // จบ: ปลดล็อค
+                                isAnimating = false;
+                                System.out.println("--- Board Settled ---");
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            isAnimating = false; // กันค้างถ้าระเบิด error
+                        }
+                    });
+                    waitGravity.play();
 
-                if (!newRemoves.isEmpty()) {
-                    // ถ้ามีระเบิดต่อ -> วนลูปเรียกตัวเองซ้ำ! (Recursion)
-                    runGameLoop(newRemoves);
-                } else {
-                    // ถ้านิ่งแล้ว -> จบ Animation ปลดล็อคให้ผู้เล่นกดต่อได้
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                     isAnimating = false;
-                    System.out.println("Board Settled.");
                 }
             });
+            waitExplosion.play();
 
-            waitBeforeNextMatch.play();
-        });
-
-        waitBeforeFall.play();
-    }
-
-    // แปลง CandyColor ของเรา เป็น JavaFX Color
-    private Color getColor(logic.candy.CandyColor c) {
-        if (c == null) return Color.TRANSPARENT;
-        switch (c) {
-            case RED: return Color.RED;
-            case GREEN: return Color.GREEN;
-            case BLUE: return Color.BLUE;
-            case YELLOW: return Color.GOLD; // สีเหลืองมองยาก ใช้ Gold แทน
-            case PURPLE: return Color.PURPLE;
-            // case ORANGE: return Color.ORANGE;
-            default: return Color.BLACK;
+        } catch (Exception e) {
+            e.printStackTrace();
+            isAnimating = false;
         }
     }
 
-    // ตัวย่อ Type
+    // Helpers สีและ Type (เหมือนเดิม)
+    private Color getColor(CandyColor c) {
+        if (c == null) return Color.TRANSPARENT;
+        switch (c) {
+            case RED: return Color.RED;
+            case GREEN: return Color.LIMEGREEN;
+            case BLUE: return Color.DODGERBLUE;
+            case YELLOW: return Color.GOLD;
+            case PURPLE: return Color.MEDIUMPURPLE;
+            default: return Color.BLACK;
+        }
+    }
     private String getTypeCode(CandyType t) {
+        if(t == null) return "";
         switch (t) {
-            case STRIPED_HOR: return "HOR";
-            case STRIPED_VER: return "VER";
-            case BOMB: return "BOMB";
-            case COLOR_BOMB: return "COLOR";
+            case STRIPED_HOR: return "H";
+            case STRIPED_VER: return "V";
+            case BOMB: return "B";
+            case COLOR_BOMB: return "C";
             default: return "";
         }
     }

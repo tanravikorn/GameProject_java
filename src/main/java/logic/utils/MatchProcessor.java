@@ -20,7 +20,10 @@ public class MatchProcessor {
                 }else{
                     candyReward = cluster.iterator().next();
                 }
-
+                if(candyReward.getType() != CandyType.NORMAL){
+                    candyReward.performExplosion(board,removes);
+                    removes.remove(new Point(candyReward.getRow(), candyReward.getColumn()));
+                }
                 candyReward.setType(reward);
                 for(Candy c : cluster){
                     if(!c.equals(candyReward)){

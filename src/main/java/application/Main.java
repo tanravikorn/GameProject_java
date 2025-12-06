@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.Color; // Import นี้สำคัญ
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -17,8 +17,8 @@ import javafx.util.Duration;
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;
-import logic.candy.CandyType;
-import logic.controller.GameController; // เช็ค package
+import logic.candy.CandyType; // Import นี้สำคัญ
+import logic.controller.GameController;
 import logic.utils.Point;
 
 import java.util.Set;
@@ -61,6 +61,8 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    // --- View Rendering ---
+
     private void updateView(Set<Point> hiddenCandies) {
         gridPane.getChildren().clear();
         Board board = controller.getBoard();
@@ -70,29 +72,40 @@ public class Main extends Application {
                 StackPane tile = new StackPane();
                 tile.setPrefSize(TILE_SIZE, TILE_SIZE);
 
+                // Background
                 Rectangle bg = new Rectangle(TILE_SIZE, TILE_SIZE);
                 bg.setFill((r + c) % 2 == 0 ? Color.LIGHTGRAY : Color.DARKGRAY);
                 bg.setStroke(Color.BLACK);
                 tile.getChildren().add(bg);
 
-                Candy candy = board.getCandy(r, c);
-                // เช็คว่าต้องซ่อนมั้ย (Visual Trick)
+                // Check Visual Holes
                 boolean shouldHide = (hiddenCandies != null && hiddenCandies.contains(new Point(r, c)));
+                Candy candy = board.getCandy(r, c);
 
                 if (candy != null && !shouldHide) {
                     Circle circle = new Circle(TILE_SIZE / 2 - 8);
-                    circle.setFill(getColor(candy.getColor()));
-                    circle.setStroke(Color.BLACK);
-                    circle.setStrokeWidth(2);
 
+                    // 🔥 LOGIC สีดำสำหรับ COLOR_BOMB (แก้ตรงนี้) 🔥
+                    if (candy.getType() == CandyType.COLOR_BOMB) {
+                        circle.setFill(Color.BLACK); // สีดำ
+                        circle.setStroke(Color.WHITE); // ขอบขาวให้เด่น
+                        circle.setStrokeWidth(3);
+                    } else {
+                        circle.setFill(getColor(candy.getColor())); // สีปกติ
+                        circle.setStroke(Color.BLACK);
+                        circle.setStrokeWidth(2);
+                    }
+
+                    // Text Type
                     String typeText = getTypeCode(candy.getType());
                     Text text = new Text(typeText);
                     text.setFill(Color.WHITE);
-                    text.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+                    text.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-effect: dropshadow(three-pass-box, black, 2, 0, 0, 0);");
 
                     tile.getChildren().addAll(circle, text);
                 }
 
+                // Highlight Selection
                 if (r == selectedRow && c == selectedCol) {
                     bg.setStroke(Color.YELLOW);
                     bg.setStrokeWidth(4);
@@ -108,7 +121,7 @@ public class Main extends Application {
         scoreLabel.setText("Score: " + controller.getScore());
     }
 
-    // ใน Main.java
+    // --- Interaction & Game Loop ---
 
     private void handleTileClick(int r, int c) {
         if (isAnimating) return;
@@ -119,34 +132,26 @@ public class Main extends Application {
             updateView(null);
         } else {
             if (Math.abs(selectedRow - r) + Math.abs(selectedCol - c) == 1) {
-                // 1. สั่ง Controller สลับ (Backend สลับค่าใน Grid แล้ว)
+                // เรียก Backend
                 Set<Point> removes = controller.handleSwap(selectedRow, selectedCol, r, c);
 
                 if (!removes.isEmpty()) {
                     isAnimating = true;
 
-                    // ✅ [เพิ่มตรงนี้] PHASE 0: โชว์การสลับก่อน!
-                    // วาดกระดานปกติ (ยังไม่ซ่อนอะไร) เพื่อให้เห็นว่าลูกอมสลับที่กันแล้ว
+                    // PHASE 0: โชว์การสลับก่อน (0.3 วินาที)
                     updateView(null);
 
-                    // รอ 0.3 วินาที ให้ตาคนมองทัน
                     PauseTransition waitSwap = new PauseTransition(Duration.seconds(0.3));
-
-                    waitSwap.setOnFinished(e -> {
-                        // พอครบเวลา ค่อยเริ่มเข้าลูประเบิด (ที่จะทำให้เกิดรูโหว่)
-                        runGameLoop(removes);
-                    });
+                    waitSwap.setOnFinished(e -> runGameLoop(removes));
                     waitSwap.play();
 
                 } else {
                     System.out.println("Invalid Move");
-                    // เพิ่ม visual feedback ว่าสลับไม่ได้ตรงนี้ก็ได้
                 }
 
                 selectedRow = -1;
                 selectedCol = -1;
-                // updateView(null); <--- ลบบรรทัดนี้ออก หรือใส่ไว้ใน else ของ invalid move ก็ได้
-                if (removes.isEmpty()) updateView(null); // อัปเดตเฉพาะถ้าไม่ระเบิด (ถ้าระเบิดเราจัดการใน waitSwap แล้ว)
+                if(removes.isEmpty()) updateView(null);
             } else {
                 selectedRow = r;
                 selectedCol = c;
@@ -155,7 +160,6 @@ public class Main extends Application {
         }
     }
 
-    // 🔥 Animation Loop ที่ปลอดภัยขึ้น
     private void runGameLoop(Set<Point> removes) {
         try {
             // PHASE 1: ระเบิด (Visual Holes)
@@ -166,7 +170,6 @@ public class Main extends Application {
                 try {
                     // PHASE 2: Physics (Backend ทำงาน)
                     controller.applyPhysics(removes);
-
                     updateView(null); // วาดของใหม่
 
                     PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.5));
@@ -176,34 +179,30 @@ public class Main extends Application {
                             Set<Point> newRemoves = controller.checkChainReaction();
 
                             if (!newRemoves.isEmpty()) {
-                                // Recursion: วนลูปถ้ามีระเบิดต่อ
-                                runGameLoop(newRemoves);
+                                runGameLoop(newRemoves); // Recursion
                             } else {
-                                // จบ: ปลดล็อค
                                 isAnimating = false;
                                 System.out.println("--- Board Settled ---");
                             }
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                            isAnimating = false; // กันค้างถ้าระเบิด error
+                            isAnimating = false;
                         }
                     });
                     waitGravity.play();
-
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     isAnimating = false;
                 }
             });
             waitExplosion.play();
-
         } catch (Exception e) {
             e.printStackTrace();
             isAnimating = false;
         }
     }
 
-    // Helpers สีและ Type (เหมือนเดิม)
+    // Helpers
     private Color getColor(CandyColor c) {
         if (c == null) return Color.TRANSPARENT;
         switch (c) {
@@ -215,6 +214,7 @@ public class Main extends Application {
             default: return Color.BLACK;
         }
     }
+
     private String getTypeCode(CandyType t) {
         if(t == null) return "";
         switch (t) {

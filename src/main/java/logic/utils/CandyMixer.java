@@ -45,7 +45,19 @@ public class CandyMixer {
             }
             return strategy;
         }
+        if (isColor1 && t2 == CandyType.NORMAL) {
+            ColorBombExplosion strategy = new ColorBombExplosion();
+            strategy.setTargetColor(c2.getColor());
+            return strategy;
+        }
+        if (isColor2 && t1 == CandyType.NORMAL) {
+            ColorBombExplosion strategy = new ColorBombExplosion();
+            strategy.setTargetColor(c1.getColor());
+            return strategy;
+        }
+
         if(isColor1 && isColor2) return new NukeExplosion();
+
         return null;
     }
 

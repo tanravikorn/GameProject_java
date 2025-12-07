@@ -29,7 +29,7 @@ public class BoardInitializer {
                 }while (isCreatingMatch(board,r,c,color));
                 Candy newCandy = new Candy(r,c,color);
                 if(gameMode == GameMode.HARD){
-                    if (Math.random() < 0.1) { // โอกาส 10%
+                    if (Math.random() < 0.25) { // โอกาส 25%
                         newCandy.setFrozen(true);
                     }
                 }

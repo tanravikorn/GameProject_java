@@ -112,14 +112,17 @@ public class Main extends Application {
         gameRoot.setCenter(gridPane);
 
         // Bottom (Items)
+        // --- Bottom (Items) ---
         HBox itemBox = new HBox(15);
         itemBox.setAlignment(Pos.CENTER);
         itemBox.setStyle("-fx-padding: 15; -fx-background-color: #ddd;");
 
-        Button btnIce = new Button("❄️ Ice Breaker");
+        // 🔥 [แก้ตรงนี้] เช็คโหมดเพื่อตั้งชื่อปุ่มให้ถูกต้อง
+        String iceBtnText = (mode == GameMode.HARD) ? "❄️ Melt Ice" : "⚫ Color Bomb";
+
+        Button btnIce = new Button(iceBtnText); // ใช้ชื่อที่ตั้งไว้
         Button btnBomb = new Button("💣 Bomb (x2)");
         Button btnStriped = new Button("⚡ Striped (x2)");
-
         // ผูกปุ่มกับ Class Item (Polymorphism)
         btnIce.setOnAction(e -> handleItemClick(new IceBreakItem()));
         btnBomb.setOnAction(e -> handleItemClick(new BombItem()));

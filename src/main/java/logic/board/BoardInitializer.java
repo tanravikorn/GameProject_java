@@ -10,7 +10,6 @@ import java.util.Random;
 
 public class BoardInitializer {
     private static final Random random = new Random();
-    private boolean isHard;
 
     public static void initialize(Board board, MatchFinder matchFinder, GameMode gameMode){
         do{
@@ -55,7 +54,6 @@ public class BoardInitializer {
                 return true;
             }
         }
-
         return false;
 
     }

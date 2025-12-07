@@ -1,3 +1,5 @@
+package candy;
+
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;

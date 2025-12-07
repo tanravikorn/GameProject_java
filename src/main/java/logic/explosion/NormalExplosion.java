@@ -18,6 +18,5 @@ public class NormalExplosion extends ExplosionBase{
             }
             affectedCandies.add(new Point(r,c));
         }
-
     }
 }

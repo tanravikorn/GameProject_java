@@ -58,6 +58,8 @@ public class Candy {
     public CandyType getType(){return this.type;}
     public CandyColor getColor(){return this.color;}
 
+    public void setColor(CandyColor color) {this.color = color;}
+
     public boolean isFrozen() {return isFrozen;}
     public void setFrozen(boolean frozen) {isFrozen = frozen;}
 }

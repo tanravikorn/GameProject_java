@@ -2,6 +2,7 @@ package application;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -20,8 +21,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
-// Imports จาก Logic ของคุณ
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType; // เพิ่มอันนี้
+import java.util.Optional;              // เพิ่มอันนี้
+// Imports จาก Logic
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;
@@ -30,7 +33,7 @@ import logic.controller.GameController;
 import logic.controller.GameMode;
 import logic.controller.GameState;
 import logic.utils.Point;
-import logic.Item.*; // Import Package Item ที่เราสร้าง
+import logic.Item.*; // Import Package Item
 
 import java.util.List;
 import java.util.Set;
@@ -46,6 +49,11 @@ public class Main extends Application {
     private Label scoreLabel;
     private Label moveLabel;
     private BorderPane gameRoot;
+
+    // 🔥 ประกาศปุ่มเป็น Field เพื่อให้อัปเดตได้จากทุกที่
+    private Button btnIce;
+    private Button btnBomb;
+    private Button btnStriped;
 
     private boolean isAnimating = false;
     private int selectedRow = -1;
@@ -64,7 +72,7 @@ public class Main extends Application {
     private void showMainMenu(Stage stage) {
         VBox menuBox = new VBox(20);
         menuBox.setAlignment(Pos.CENTER);
-        menuBox.setStyle("-fx-background-color: #f0f8ff;"); // AliceBlue Background
+        menuBox.setStyle("-fx-background-color: #f0f8ff;");
 
         Label titleLabel = new Label("🍬 Candy Crush OOP 🍬");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
@@ -86,15 +94,13 @@ public class Main extends Application {
 
     // --- 🎮 GAME SCENE ---
     private void startGame(Stage stage, GameMode mode) {
-        // 1. Init Controller
         controller = new GameController(ROWS, COLS, mode);
 
-        // 2. Setup Layout
         gameRoot = new BorderPane();
         gridPane = new GridPane();
         gridPane.setAlignment(Pos.CENTER);
 
-        // Header (Score & Moves)
+        // Header
         BorderPane header = new BorderPane();
         header.setStyle("-fx-background-color: #333; -fx-padding: 10;");
 
@@ -111,19 +117,23 @@ public class Main extends Application {
         gameRoot.setTop(header);
         gameRoot.setCenter(gridPane);
 
-        // Bottom (Items)
         // --- Bottom (Items) ---
         HBox itemBox = new HBox(15);
         itemBox.setAlignment(Pos.CENTER);
         itemBox.setStyle("-fx-padding: 15; -fx-background-color: #ddd;");
 
-        // 🔥 [แก้ตรงนี้] เช็คโหมดเพื่อตั้งชื่อปุ่มให้ถูกต้อง
-        String iceBtnText = (mode == GameMode.HARD) ? "❄️ Melt Ice" : "⚫ Color Bomb";
+        // สร้างปุ่ม
+        btnIce = new Button();
+        btnBomb = new Button();
+        btnStriped = new Button();
 
-        Button btnIce = new Button(iceBtnText); // ใช้ชื่อที่ตั้งไว้
-        Button btnBomb = new Button("💣 Bomb (x2)");
-        Button btnStriped = new Button("⚡ Striped (x2)");
-        // ผูกปุ่มกับ Class Item (Polymorphism)
+        // Style พื้นฐาน
+        String btnStyle = "-fx-font-size: 14px; -fx-background-radius: 10; -fx-min-width: 150px; -fx-font-weight: bold;";
+        btnIce.setStyle(btnStyle);
+        btnBomb.setStyle(btnStyle);
+        btnStriped.setStyle(btnStyle);
+
+        // Set Action
         btnIce.setOnAction(e -> handleItemClick(new IceBreakItem()));
         btnBomb.setOnAction(e -> handleItemClick(new BombItem()));
         btnStriped.setOnAction(e -> handleItemClick(new StripedItem()));
@@ -131,7 +141,9 @@ public class Main extends Application {
         itemBox.getChildren().addAll(btnIce, btnBomb, btnStriped);
         gameRoot.setBottom(itemBox);
 
-        // 3. Render Initial Board
+        // 🔥 เรียกอัปเดตปุ่มครั้งแรก (เพื่อใส่ข้อความและเช็คสี)
+        updateItemButtons();
+
         updateView(null);
 
         Scene gameScene = new Scene(gameRoot, COLS * TILE_SIZE + 40, ROWS * TILE_SIZE + 150);
@@ -140,7 +152,37 @@ public class Main extends Application {
         stage.setResizable(false);
     }
 
-    // --- 🎨 View Rendering ---
+    // --- 🔄 Method อัปเดตสถานะปุ่ม ---
+    private void updateItemButtons() {
+        // 1. Ice Breaker / Color Bomb
+        int iceCount = controller.getIceItemAmount();
+        String iceName = (controller.getGameMode() == GameMode.HARD) ? "❄️ Melt Ice" : "⚫ Color Bomb";
+        btnIce.setText(iceName + " (" + iceCount + ")");
+        btnIce.setDisable(iceCount <= 0);
+        // ถ้ามีของ=สีฟ้า, หมด=สีเทา
+        btnIce.setStyle("-fx-background-color: " + (iceCount > 0 ? "#87CEEB" : "#D3D3D3") +
+                "; -fx-text-fill: " + (iceCount > 0 ? "black" : "gray") +
+                "; -fx-font-size: 14px; -fx-background-radius: 10; -fx-min-width: 150px; -fx-font-weight: bold;");
+
+        // 2. Bomb
+        int bombCount = controller.getBombItemAmount();
+        btnBomb.setText("💣 Bomb (" + bombCount + ")");
+        btnBomb.setDisable(bombCount <= 0);
+        // ถ้ามีของ=สีส้ม, หมด=สีเทา
+        btnBomb.setStyle("-fx-background-color: " + (bombCount > 0 ? "#FF6347" : "#D3D3D3") +
+                "; -fx-text-fill: " + (bombCount > 0 ? "white" : "gray") +
+                "; -fx-font-size: 14px; -fx-background-radius: 10; -fx-min-width: 150px; -fx-font-weight: bold;");
+
+        // 3. Striped
+        int stripedCount = controller.getStripedItemAmount();
+        btnStriped.setText("⚡ Striped (" + stripedCount + ")");
+        btnStriped.setDisable(stripedCount <= 0);
+        // ถ้ามีของ=สีเหลือง, หมด=สีเทา
+        btnStriped.setStyle("-fx-background-color: " + (stripedCount > 0 ? "#FFD700" : "#D3D3D3") +
+                "; -fx-text-fill: " + (stripedCount > 0 ? "black" : "gray") +
+                "; -fx-font-size: 14px; -fx-background-radius: 10; -fx-min-width: 150px; -fx-font-weight: bold;");
+    }
+
     private void updateView(Set<Point> hiddenCandies) {
         gridPane.getChildren().clear();
         Board board = controller.getBoard();
@@ -150,20 +192,17 @@ public class Main extends Application {
                 StackPane tile = new StackPane();
                 tile.setPrefSize(TILE_SIZE, TILE_SIZE);
 
-                // Background
                 Rectangle bg = new Rectangle(TILE_SIZE, TILE_SIZE);
                 bg.setFill((r + c) % 2 == 0 ? Color.rgb(235,235,235) : Color.rgb(210,210,210));
                 bg.setStroke(Color.GRAY);
                 tile.getChildren().add(bg);
 
-                // Logic ซ่อนลูกอม (ตอนระเบิด)
                 boolean shouldHide = (hiddenCandies != null && hiddenCandies.contains(new Point(r, c)));
                 Candy candy = board.getCandy(r, c);
 
                 if (candy != null && !shouldHide) {
                     Circle circle = new Circle(TILE_SIZE / 2 - 8);
 
-                    // วาดสีลูกอม
                     if (candy.getType() == CandyType.COLOR_BOMB) {
                         circle.setFill(Color.BLACK);
                         circle.setStroke(Color.WHITE);
@@ -175,18 +214,16 @@ public class Main extends Application {
                     }
                     tile.getChildren().add(circle);
 
-                    // วาดน้ำแข็ง (Visual Ice)
                     if (candy.isFrozen()) {
                         Rectangle ice = new Rectangle(TILE_SIZE - 10, TILE_SIZE - 10);
                         ice.setArcWidth(15);
                         ice.setArcHeight(15);
-                        ice.setFill(Color.rgb(173, 216, 230, 0.6)); // ฟ้าใส
+                        ice.setFill(Color.rgb(173, 216, 230, 0.6));
                         ice.setStroke(Color.WHITE);
                         ice.setStrokeWidth(2);
                         tile.getChildren().add(ice);
                     }
 
-                    // วาดตัวอักษร Type
                     String typeText = getTypeCode(candy.getType());
                     if (!typeText.isEmpty()) {
                         Text text = new Text(typeText);
@@ -197,13 +234,11 @@ public class Main extends Application {
                     }
                 }
 
-                // Highlight Selection
                 if (r == selectedRow && c == selectedCol) {
                     bg.setStroke(Color.YELLOW);
                     bg.setStrokeWidth(4);
                 }
 
-                // Click Event
                 int finalR = r;
                 int finalC = c;
                 tile.setOnMouseClicked(e -> handleTileClick(finalR, finalC));
@@ -212,12 +247,9 @@ public class Main extends Application {
             }
         }
 
-        // Update Labels
         scoreLabel.setText("Score: " + controller.getScore());
         moveLabel.setText("Moves: " + controller.getMoveLeft());
     }
-
-    // --- 🖱️ Interaction Logic ---
 
     private void handleTileClick(int r, int c) {
         if (isAnimating || controller.getGameState() != GameState.PLAY) return;
@@ -228,12 +260,10 @@ public class Main extends Application {
             updateView(null);
         } else {
             if (Math.abs(selectedRow - r) + Math.abs(selectedCol - c) == 1) {
-                // Swap Action
                 Set<Point> removes = controller.handleSwap(selectedRow, selectedCol, r, c);
 
                 if (!removes.isEmpty()) {
                     isAnimating = true;
-                    // Phase 0: Show Swap
                     updateView(null);
                     PauseTransition wait = new PauseTransition(Duration.seconds(0.3));
                     wait.setOnFinished(e -> runGameLoop(removes));
@@ -253,16 +283,18 @@ public class Main extends Application {
         }
     }
 
-    // --- 🎁 Item Logic ---
     private void handleItemClick(Item itemStrategy) {
         if (isAnimating || controller.getGameState() != GameState.PLAY) return;
 
         System.out.println("Using Item: " + itemStrategy.getClass().getSimpleName());
 
-        // 1. Ice Breaker (Instant Effect)
+        // 1. Ice Breaker (Instant)
         if (itemStrategy instanceof IceBreakItem) {
+            // เรียกใช้ (Controller จะเช็คโควต้าและตัดจำนวนให้เอง)
             controller.applyItemTransform(itemStrategy);
+
             updateView(null);
+            updateItemButtons(); // 🔥 อัปเดตปุ่มทันที
             checkGameOver();
             return;
         }
@@ -272,7 +304,8 @@ public class Main extends Application {
 
         if (!targets.isEmpty()) {
             isAnimating = true;
-            updateView(null); // Show Transformation
+            updateView(null);
+            updateItemButtons(); // 🔥 อัปเดตปุ่มทันที (ตัวเลขลด)
 
             PauseTransition waitShow = new PauseTransition(Duration.seconds(0.5));
             waitShow.setOnFinished(e -> {
@@ -286,36 +319,31 @@ public class Main extends Application {
                 }
             });
             waitShow.play();
+        } else {
+            System.out.println("Item failed (Out of stock or No targets)");
         }
     }
 
-    // --- 🔄 Animation Loop ---
     private void runGameLoop(Set<Point> removes) {
         try {
-            // Phase 1: Show Explosion (Holes)
             updateView(removes);
 
             PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.5));
             waitExplosion.setOnFinished(e -> {
-
-                // Phase 2: Physics (Fall & Refill)
                 controller.applyPhysics(removes);
                 updateView(null);
 
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.5));
                 waitGravity.setOnFinished(e2 -> {
-
-                    // Phase 3: Chain Reaction
                     Set<Point> newRemoves = controller.checkChainReaction();
 
                     if (!newRemoves.isEmpty()) {
                         runGameLoop(newRemoves);
                     } else {
                         isAnimating = false;
-                        System.out.println("--- Board Settled ---");
 
-                        // 🔥 เรียก Shuffle ถ้าเดินไม่ได้ (End Turn)
-                        // controller.endTurn();
+                        // เรียก Shuffle ถ้าเดินไม่ได้
+                        controller.endTurn();
 
                         updateView(null);
                         checkGameOver();
@@ -331,18 +359,55 @@ public class Main extends Application {
     }
 
     private void checkGameOver() {
+        // Debug: ปริ้นท์เช็คดูว่าสถานะตอนนี้คืออะไร
+        System.out.println("Checking Game Over... Current State: " + controller.getGameState());
+        System.out.println("Moves Left: " + controller.getMoveLeft());
+
         if (controller.getGameState() == GameState.GAME_OVER) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setHeaderText(controller.getMoveLeft() <= 0 ? "Moves Out!" : "You Win!");
-            alert.setContentText("Final Score: " + controller.getScore());
-            alert.show();
-            // Optional: กลับหน้าเมนูเมื่อกด OK
-            // alert.setOnHidden(evt -> showMainMenu((Stage) scoreLabel.getScene().getWindow()));
+
+            // 🔥 ใช้ Platform.runLater เพื่อแก้ปัญหา UI ค้าง
+            Platform.runLater(() -> {
+                try {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("Game Over");
+
+                    String header = controller.getMoveLeft() <= 0 ? "❌ Moves Out!" : "🎉 You Win!";
+                    alert.setHeaderText(header);
+                    alert.setContentText("Your Final Score: " + controller.getScore());
+
+                    ButtonType btnRetry = new ButtonType("🔄 Retry");
+                    ButtonType btnMenu = new ButtonType("🏠 Main Menu");
+                    ButtonType btnExit = new ButtonType("🚪 Exit");
+
+                    alert.getButtonTypes().setAll(btnRetry, btnMenu, btnExit);
+
+                    // ดึง Stage อย่างระมัดระวัง (เช็ค null)
+                    Stage currentStage = null;
+                    if (gridPane.getScene() != null) {
+                        currentStage = (Stage) gridPane.getScene().getWindow();
+                    }
+
+                    Optional<ButtonType> result = alert.showAndWait();
+
+                    if (result.isPresent() && currentStage != null) {
+                        if (result.get() == btnRetry) {
+                            System.out.println("Retrying Game...");
+                            startGame(currentStage, controller.getGameMode());
+                        } else if (result.get() == btnMenu) {
+                            System.out.println("Back to Menu...");
+                            showMainMenu(currentStage);
+                        } else if (result.get() == btnExit) {
+                            System.out.println("Exiting...");
+                            currentStage.close();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
-    // --- UI Helpers ---
     private Button createStyledButton(String text, Color bg) {
         Button btn = new Button(text);
         btn.setFont(Font.font(16));

@@ -20,6 +20,10 @@ public class GameController {
     private int score;
     private int moveLeft;
     private Random random = new Random();
+    private int bombItemAmount;
+    private int iceItemAmount;
+    private int stripedItemAmount;
+
     public GameController(int rows, int cols, GameMode mode){
         this.board = new Board(rows, cols);
         this.matchFinder = new MatchFinder(board);
@@ -32,6 +36,9 @@ public class GameController {
         this.score = 0;
         this.gameState = GameState.PLAY;
         setMoveLeft(gameMode == GameMode.HARD ? 15:20);
+        this.bombItemAmount = 2;
+        this.iceItemAmount = 1;
+        this.stripedItemAmount = 2;
     }
 
     public Set<Point> handleSwap(int r1, int c1, int r2,int c2){
@@ -104,10 +111,24 @@ public class GameController {
 
     public List<Point> applyItemTransform(Item item){
         if(gameState != GameState.PLAY) return new ArrayList<>();
+        boolean canUse = true;
         if(item != null){
-            return item.use(board, gameMode);
+            if(item instanceof BombItem && bombItemAmount> 0){
+                bombItemAmount--;
+            } else if(item instanceof IceBreakItem && iceItemAmount >0){
+                iceItemAmount--;
+            } else if (item instanceof StripedItem && stripedItemAmount > 0) {
+                stripedItemAmount--;
+            }else{
+                canUse = false;
+            }
+        }else{
+            return new ArrayList<>();
         }
-        return new ArrayList<>();
+        if(canUse){
+            return item.use(board,gameMode);
+        }
+        else return new ArrayList<>();
     }
     public Set<Point> activateItems(List<Point> target){
         Set<Point> removes = new HashSet<>();
@@ -141,5 +162,16 @@ public class GameController {
 
     public void setGameMode(GameMode gameMode) {
         this.gameMode = gameMode;
+    }
+    public int getBombItemAmount() {
+        return bombItemAmount;
+    }
+
+    public int getIceItemAmount() {
+        return iceItemAmount;
+    }
+
+    public int getStripedItemAmount() {
+        return stripedItemAmount;
     }
 }

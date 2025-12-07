@@ -9,7 +9,7 @@ import logic.utils.CandyMixer;
 import logic.utils.MatchFinder;
 import logic.utils.MatchProcessor;
 import logic.utils.Point;
-
+import logic.Item.*;
 import java.util.*;
 
 public class GameController {
@@ -102,6 +102,24 @@ public class GameController {
         }
     }
 
+    public List<Point> applyItemTransform(Item item){
+        if(gameState != GameState.PLAY) return new ArrayList<>();
+        if(item != null){
+            return item.use(board, gameMode);
+        }
+        return new ArrayList<>();
+    }
+    public Set<Point> activateItems(List<Point> target){
+        Set<Point> removes = new HashSet<>();
+        for(Point p : target){
+            Candy candy = board.getCandy(p.r,p.c);
+            if(candy != null){
+                candy.performExplosion(board, removes);
+                score += 500;
+            }
+        }
+        return removes;
+    }
     public void setMoveLeft(int moveLeft){
         this.moveLeft = Math.max(0,moveLeft);
     }

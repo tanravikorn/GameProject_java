@@ -35,7 +35,10 @@ public class Candy {
             case BOMB -> this.explosion = new AreaExplosion(1);
             case STRIPED_HOR -> this.explosion = new LineExplosion(false);
             case STRIPED_VER -> this.explosion = new LineExplosion(true);
-            case COLOR_BOMB -> this.explosion = new ColorBombExplosion();
+            case COLOR_BOMB -> {
+                this.color = CandyColor.NONE;
+                this.explosion = new ColorBombExplosion();
+            }
             default -> this.explosion = new NormalExplosion();
         }
     }

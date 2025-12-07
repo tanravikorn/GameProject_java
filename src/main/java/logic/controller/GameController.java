@@ -10,10 +10,7 @@ import logic.utils.MatchFinder;
 import logic.utils.MatchProcessor;
 import logic.utils.Point;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GameController {
     private Board board;
@@ -22,7 +19,7 @@ public class GameController {
     private GameMode gameMode;
     private int score;
     private int moveLeft;
-
+    private Random random = new Random();
     public GameController(int rows, int cols, GameMode mode){
         this.board = new Board(rows, cols);
         this.matchFinder = new MatchFinder(board);
@@ -34,6 +31,7 @@ public class GameController {
         BoardInitializer.initialize(board, matchFinder, gameMode);
         this.score = 0;
         this.gameState = GameState.PLAY;
+        setMoveLeft(gameMode == GameMode.HARD ? 15:20);
     }
 
     public Set<Point> handleSwap(int r1, int c1, int r2,int c2){
@@ -66,6 +64,10 @@ public class GameController {
             performSwap(r1, c1, r2, c2);
         } else {
             score += removes.size() * 100;
+            setMoveLeft(moveLeft-1);
+        }
+        if(moveLeft <= 0) {
+            gameState = GameState.GAME_OVER;
         }
         return removes;
     }
@@ -91,7 +93,8 @@ public class GameController {
         }
         return newRemoves;
     }
-    private void endTurn(){
+
+    public void endTurn(){
         if(!matchFinder.hasPotentialMatch()){
             do{
                 BoardUpdater.shuffleBoard(board);
@@ -99,6 +102,9 @@ public class GameController {
         }
     }
 
+    public void setMoveLeft(int moveLeft){
+        this.moveLeft = Math.max(0,moveLeft);
+    }
     public int getMoveLeft() {
         return moveLeft;
     }

@@ -8,8 +8,10 @@ import logic.utils.Point;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BombItem extends Item{
+    private static int amount = 2;
     @Override
     public List<Point> use(Board board, GameMode mode){
         List<Point> affect = new ArrayList<>();

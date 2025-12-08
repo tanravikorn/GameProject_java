@@ -330,7 +330,7 @@ public class Main extends Application {
 
             PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.5));
             waitExplosion.setOnFinished(e -> {
-                controller.applyPhysics(removes);
+                controller.boardUpdate(removes);
                 updateView(null);
 
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.5));

@@ -87,7 +87,7 @@ public class GameController {
         board.setCandy(r2,c2,candy1);
     }
 
-    public void applyPhysics(Set<Point> removes) {
+    public void boardUpdate(Set<Point> removes) {
         BoardUpdater.updateBoard(board, removes);
     }
 
@@ -131,6 +131,7 @@ public class GameController {
         }
         else return new ArrayList<>();
     }
+
     public Set<Point> activateItems(List<Point> target){
         Set<Point> removes = new HashSet<>();
         for(Point p : target){

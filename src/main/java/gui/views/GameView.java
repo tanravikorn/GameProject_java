@@ -1,25 +1,21 @@
 package gui.views;
 
 import gui.base.View;
-import gui.base.ViewManager;
+import gui.components.BoardPane;
 import javafx.animation.PauseTransition;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-// Import Logic จาก Backend
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;
@@ -28,87 +24,120 @@ import logic.controller.GameController;
 import logic.controller.GameMode;
 import logic.utils.Point;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.Set;
-
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 
 public class GameView implements View {
 
-    // --- ค่าคงที่จาก Main เดิม ---
     private static final int ROWS = 9;
     private static final int COLS = 9;
-    private static final int TILE_SIZE = 60;
 
-    // --- ตัวแปรระบบ ---
     private final Scene scene;
     private GameController controller;
-    private GridPane gridPane;
-    private Label scoreLabel;
+    private BoardPane boardPane;
 
-    // --- ตัวแปรสถานะเกม ---
+    // UI Components
+    private Label scoreLabel;
+    private Label moveLabel;
+
+    // ปุ่มไอเทม
+    private Button item1Btn;
+    private Button item2Btn;
+    private Button item3Btn;
+
+    // ตัวแปรนับจำนวนไอเทม (Local Trackers)
+    private int localItem1Count;
+    private int localBombCount;
+    private int localStripedCount;
+
     private boolean isAnimating = false;
     private int selectedRow = -1;
     private int selectedCol = -1;
+    private final Random random = new Random();
 
-    public GameView() {
-        // 1. สร้าง Controller (เริ่มเกมใหม่ทันทีที่เข้าหน้านี้)
-        controller = new GameController(ROWS, COLS, GameMode.NORMAL);
+    public GameView(GameMode mode) {
+        controller = new GameController(ROWS, COLS, mode);
 
-        // 2. สร้าง UI Layout
+        // ดึงค่าเริ่มต้นจาก Controller มาเก็บไว้เอง
+        this.localBombCount = controller.getBombItemAmount();
+        this.localStripedCount = controller.getStripedItemAmount();
+        this.localItem1Count = controller.getIceItemAmount();
+
         BorderPane root = new BorderPane();
+        // กำหนดสีพื้นหลังหลัก (ธีมมืด)
+        root.setStyle("-fx-background-color: #2c3e50;");
 
-        // ---------------------------------------------------------
-        // [แก้ไขส่วนที่ 1] : เพิ่มพื้นหลังรูปภาพ
-        // ---------------------------------------------------------
+        // --- Center: Board ---
+        boardPane = new BoardPane();
+        root.setCenter(boardPane);
+        BorderPane.setAlignment(boardPane, Pos.CENTER);
 
-        // โหลดรูปภาพ (ตรวจสอบให้แน่ใจว่าไฟล์ bg.png อยู่หน้า folder project)
-        Image bgImage = new Image("file:bg.png");
-        ImageView bgView = new ImageView(bgImage);
+        // --- Top: HUD (Score & Moves) ---
+        BorderPane topPanel = new BorderPane();
+        topPanel.setPadding(new Insets(15, 25, 15, 25)); // เว้นขอบซ้ายขวาให้สวยงาม
+        topPanel.setStyle("-fx-background-color: rgba(0,0,0,0.3);"); // พื้นหลังจางๆ
 
-        // ปรับขนาดรูปให้พอดีกับหน้าจอ
-        bgView.setFitWidth(800);
-        bgView.setFitHeight(700);
-        bgView.setPreserveRatio(false); // ยืดให้เต็ม
-        bgView.setOpacity(0.6); // ปรับความจางของรูป (0.0 - 1.0)
+        // 1. Score -> มุมซ้ายบน
+        scoreLabel = new Label();
+        styleLabel(scoreLabel);
+        topPanel.setLeft(scoreLabel);
 
-        // สร้าง StackPane เพื่อซ้อนเลเยอร์ (รูปอยู่ล่าง ตารางอยู่บน)
-        StackPane gameArea = new StackPane();
+        // 2. Moves -> มุมขวาบน
+        moveLabel = new Label();
+        styleLabel(moveLabel);
+        topPanel.setRight(moveLabel);
 
-        // ส่วนแสดงผลกระดาน
-        gridPane = new GridPane();
-        gridPane.setAlignment(Pos.CENTER);
+        root.setTop(topPanel);
 
-        // เอารูปกับตารางมารวมร่างกัน
-        gameArea.getChildren().addAll(bgView, gridPane);
-        // ---------------------------------------------------------
+        // --- Bottom: Items ---
+        HBox bottomPanel = new HBox(15);
+        bottomPanel.setAlignment(Pos.CENTER);
+        bottomPanel.setPadding(new Insets(15));
+        bottomPanel.setStyle("-fx-background-color: rgba(0,0,0,0.3);");
 
-        // ส่วนหัว (Header) : ปุ่มกลับเมนู + คะแนน
-        HBox header = new HBox(20);
-        header.setAlignment(Pos.CENTER);
-        header.setStyle("-fx-padding: 15; -fx-background-color: #2c3e50;");
+        // Item 1: เปลี่ยนตามโหมด (Ice หรือ Color Bomb)
+        item1Btn = new Button();
+        if (mode == GameMode.HARD) {
+            item1Btn.setText("Melt Ice (" + localItem1Count + ")");
+            item1Btn.setOnAction(e -> handleUseItem("ICE"));
+        } else {
+            item1Btn.setText("Color Bomb (" + localItem1Count + ")");
+            item1Btn.setOnAction(e -> handleUseItem("COLOR_BOMB"));
+        }
+        styleItemButton(item1Btn, "#29b6f6");
 
-        Button btnBack = new Button("Main Menu");
-        styleButton(btnBack);
-        // สั่งให้ ViewManager กลับไปหน้า Start
-        btnBack.setOnAction(e -> ViewManager.getInstance().showStartScreen());
+        // Item 2: Bomb
+        item2Btn = new Button("Bomb (" + localBombCount + ")");
+        item2Btn.setOnAction(e -> handleUseItem("BOMB"));
+        styleItemButton(item2Btn, "#ef5350");
 
-        scoreLabel = new Label("Score: 0");
-        scoreLabel.setTextFill(Color.WHITE);
-        scoreLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
+        // Item 3: Striped
+        item3Btn = new Button("Striped (" + localStripedCount + ")");
+        item3Btn.setOnAction(e -> handleUseItem("STRIPED"));
+        styleItemButton(item3Btn, "#66bb6a");
 
-        header.getChildren().addAll(btnBack, scoreLabel);
+        bottomPanel.getChildren().addAll(item1Btn, item2Btn, item3Btn);
+        root.setBottom(bottomPanel);
 
-        root.setTop(header);
+        // อัปเดตสถานะปุ่มครั้งแรก
+        updateItemButtons();
 
-        // [แก้ไข] เปลี่ยนจาก gridPane เป็น gameArea (ที่มีรูปซ้อนอยู่)
-        root.setCenter(gameArea);
-
-        // 3. วาดกระดานครั้งแรก
         updateView(null);
+        scene = new Scene(root, 600, 750);
+    }
 
-        // 4. สร้าง Scene ส่งกลับไปให้ ViewManager
-        scene = new Scene(root, 800, 700);
+    // --- Styling Helpers ---
+    private void styleLabel(Label lbl) {
+        lbl.setTextFill(Color.WHITE);
+        lbl.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+    }
+
+    private void styleItemButton(Button btn, String color) {
+        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;");
+        btn.setPrefWidth(140);
+        btn.setPrefHeight(40);
     }
 
     @Override
@@ -116,93 +145,44 @@ public class GameView implements View {
         return scene;
     }
 
-    private void styleButton(Button btn) {
-        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
-    }
-
-    // ==========================================
-    // ด้านล่างนี้คือ Logic เดิมจาก Main.java
-    // (นำมาปรับปรุงเล็กน้อยให้เข้ากับ Class ใหม่)
-    // ==========================================
-
+    // --- Update View ---
     private void updateView(Set<Point> animateCandidates) {
-        gridPane.getChildren().clear();
-        Board board = controller.getBoard();
+        boardPane.update(
+                controller.getBoard(),
+                animateCandidates,
+                selectedRow,
+                selectedCol,
+                this::handleTileClick
+        );
 
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                StackPane tile = new StackPane();
-                tile.setPrefSize(TILE_SIZE, TILE_SIZE);
-
-                // พื้นหลังช่อง
-                Rectangle bg = new Rectangle(TILE_SIZE, TILE_SIZE);
-
-                // ---------------------------------------------------------
-                // [แก้ไขส่วนที่ 2] : ปรับสีช่องให้โปร่งใส (Transparency)
-                // ---------------------------------------------------------
-                if ((r + c) % 2 == 0) {
-                    // สีขาว จางๆ (Opacity 0.3)
-                    bg.setFill(Color.rgb(255, 255, 255, 0.3));
-                } else {
-                    // สีดำ จางๆ (Opacity 0.1)
-                    bg.setFill(Color.rgb(0, 0, 0, 0.1));
-                }
-
-                // Highlight ช่องที่เลือก (ยังคงสีชัดเจนไว้)
-                if (r == selectedRow && c == selectedCol) {
-                    bg.setFill(Color.web("#f1c40f", 0.7)); // สีเหลืองโปร่งแสงนิดหน่อย
-                    bg.setStroke(Color.WHITE);
-                    bg.setStrokeWidth(3);
-                }
-
-                tile.getChildren().add(bg);
-
-                // วาดลูกกวาด
-                Candy candy = board.getCandy(r, c);
-                // ถ้าลูกกวาดกำลังจะระเบิด ให้ซ่อนไว้ (Animation)
-                if (animateCandidates != null && animateCandidates.contains(new Point(r, c))) {
-                    // ว่างเปล่า
-                } else if (candy != null) {
-                    Circle circle = new Circle(TILE_SIZE / 2.5);
-                    circle.setFill(getColor(candy.getColor()));
-
-                    // Effect พิเศษ
-                    if (candy.getType() == CandyType.COLOR_BOMB) {
-                        circle.setFill(Color.BLACK);
-                        circle.setStroke(Color.WHITE);
-                        circle.setStrokeWidth(2);
-                    }
-                    if(candy.isFrozen()){
-                        circle.setStroke(Color.CYAN);
-                        circle.setStrokeWidth(3);
-                    }
-
-                    tile.getChildren().add(circle);
-
-                    // ตัวอักษร
-                    String typeText = getTypeCode(candy.getType());
-                    if (!typeText.isEmpty()) {
-                        Text txt = new Text(typeText);
-                        txt.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-                        txt.setFill(Color.WHITE);
-                        txt.setStroke(Color.BLACK);
-                        tile.getChildren().add(txt);
-                    }
-                }
-
-                // Event คลิก
-                final int finalR = r;
-                final int finalC = c;
-                tile.setOnMouseClicked(e -> handleTileClick(finalR, finalC));
-
-                gridPane.add(tile, c, r);
-            }
-        }
         scoreLabel.setText("Score: " + controller.getScore());
+        moveLabel.setText("Moves: " + controller.getMoveLeft());
+
+        // อัปเดตสถานะปุ่ม (Enable/Disable/Text)
+        updateItemButtons();
     }
 
+    private void updateItemButtons() {
+        String name1 = (controller.getGameMode() == GameMode.HARD) ? "Melt Ice" : "Color Bomb";
+        updateSingleButton(item1Btn, name1, localItem1Count);
+        updateSingleButton(item2Btn, "Bomb", localBombCount);
+        updateSingleButton(item3Btn, "Striped", localStripedCount);
+    }
+
+    private void updateSingleButton(Button btn, String name, int count) {
+        btn.setText(name + " (" + count + ")");
+        if (count <= 0) {
+            btn.setDisable(true);
+            btn.setOpacity(0.5);
+        } else {
+            btn.setDisable(false);
+            btn.setOpacity(1.0);
+        }
+    }
+
+    // --- Actions ---
     private void handleTileClick(int r, int c) {
-        if (isAnimating) return;
+        if (isAnimating || controller.getMoveLeft() <= 0) return;
 
         if (selectedRow == -1) {
             selectedRow = r;
@@ -213,7 +193,6 @@ public class GameView implements View {
                 Set<Point> matchResults = controller.handleSwap(selectedRow, selectedCol, r, c);
                 selectedRow = -1;
                 selectedCol = -1;
-
                 if (!matchResults.isEmpty()) {
                     runGameLoop(matchResults);
                 } else {
@@ -227,60 +206,113 @@ public class GameView implements View {
         }
     }
 
+    // --- Item Logic (เขียนเองใน View เพราะห้ามแก้ Controller) ---
+    private void handleUseItem(String type) {
+        // 1. ตรวจสอบเงื่อนไขพื้นฐาน
+        if (isAnimating || controller.getMoveLeft() <= 0) return;
+
+        List<Point> targetPoints = new ArrayList<>();
+        Board board = controller.getBoard();
+        boolean used = false;
+
+        // --- Logic: BOMB ---
+        if (type.equals("BOMB") && localBombCount > 0) {
+            int r = random.nextInt(ROWS);
+            int c = random.nextInt(COLS);
+            Candy candy = board.getCandy(r, c);
+            if (candy != null) {
+                candy.setType(CandyType.BOMB);
+                targetPoints.add(new Point(r, c));
+                localBombCount--;
+                used = true;
+            }
+        }
+        // --- Logic: STRIPED ---
+        else if (type.equals("STRIPED") && localStripedCount > 0) {
+            int r = random.nextInt(ROWS);
+            int c = random.nextInt(COLS);
+            Candy candy = board.getCandy(r, c);
+            if (candy != null) {
+                if (random.nextBoolean()) candy.setType(CandyType.STRIPED_HOR);
+                else candy.setType(CandyType.STRIPED_VER);
+                targetPoints.add(new Point(r, c));
+                localStripedCount--;
+                used = true;
+            }
+        }
+        // --- Logic: ICE (Hard Mode) ---
+        else if (type.equals("ICE") && localItem1Count > 0) {
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    Candy candy = board.getCandy(r, c);
+                    if (candy != null && candy.isFrozen()) {
+                        targetPoints.add(new Point(r, c));
+                    }
+                }
+            }
+            if(!targetPoints.isEmpty()) {
+                localItem1Count--;
+                used = true;
+            }
+        }
+        // --- Logic: COLOR BOMB (Normal Mode) ---
+        else if (type.equals("COLOR_BOMB") && localItem1Count > 0) {
+            List<CandyColor> availableColors = new ArrayList<>();
+            for(int r=0; r<ROWS; r++) {
+                for(int c=0; c<COLS; c++) {
+                    Candy candy = board.getCandy(r, c);
+                    if(candy != null && candy.getColor() != CandyColor.NONE && !availableColors.contains(candy.getColor())) {
+                        availableColors.add(candy.getColor());
+                    }
+                }
+            }
+
+            if(!availableColors.isEmpty()) {
+                CandyColor targetColor = availableColors.get(random.nextInt(availableColors.size()));
+                for(int r=0; r<ROWS; r++) {
+                    for(int c=0; c<COLS; c++) {
+                        Candy candy = board.getCandy(r, c);
+                        if(candy != null && candy.getColor() == targetColor) {
+                            targetPoints.add(new Point(r, c));
+                        }
+                    }
+                }
+                localItem1Count--;
+                used = true;
+            }
+        }
+
+        // สั่งให้ Controller ทำลายลูกกวาด
+        if (used && !targetPoints.isEmpty()) {
+            Set<Point> allRemoves = controller.activateItems(targetPoints);
+            runGameLoop(allRemoves);
+        }
+    }
+
     private void runGameLoop(Set<Point> initialRemoves) {
         isAnimating = true;
-        updateView(initialRemoves); // Phase 1: ระเบิด
+        updateView(initialRemoves);
 
         PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.3));
         waitExplosion.setOnFinished(e -> {
             try {
                 controller.applyPhysics(initialRemoves);
-                updateView(null); // Phase 2: ร่วงลงมา
+                updateView(null);
 
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.4));
                 waitGravity.setOnFinished(e2 -> {
                     try {
                         Set<Point> chainRemoves = controller.checkChainReaction();
                         if (!chainRemoves.isEmpty()) {
-                            runGameLoop(chainRemoves); // Loop
+                            runGameLoop(chainRemoves);
                         } else {
                             isAnimating = false;
                         }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        isAnimating = false;
-                    }
+                    } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
                 });
                 waitGravity.play();
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                isAnimating = false;
-            }
+            } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
         });
         waitExplosion.play();
-    }
-
-    private Color getColor(CandyColor c) {
-        if (c == null) return Color.TRANSPARENT;
-        switch (c) {
-            case RED: return Color.RED;
-            case GREEN: return Color.LIMEGREEN;
-            case BLUE: return Color.DODGERBLUE;
-            case YELLOW: return Color.GOLD;
-            case PURPLE: return Color.MEDIUMPURPLE;
-            default: return Color.BLACK;
-        }
-    }
-
-    private String getTypeCode(CandyType t) {
-        if (t == null) return "";
-        switch (t) {
-            case STRIPED_HOR: return "H";
-            case STRIPED_VER: return "V";
-            case BOMB: return "B";
-            case COLOR_BOMB: return "C";
-            default: return "";
-        }
     }
 }

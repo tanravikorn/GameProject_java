@@ -23,7 +23,7 @@ public class MatchFinder {
         int rows = board.getRows();
         int cols = board.getCols();
 
-        //Horzital
+        //Horizontal
         int left = c;
         while(left > 0 && checkColor(r, left -1 , color)) left--;
         int right = c;
@@ -120,8 +120,9 @@ public class MatchFinder {
 
 
     public boolean checkColor(int r, int c, CandyColor color){
+        if(color == CandyColor.NONE) return false;
         Candy candy = board.getCandy(r,c);
-        return (candy != null) && (color == candy.getColor()) && !candy.isRemove();
+        return (candy != null) &&(candy.getColor() != CandyColor.NONE)&& (color == candy.getColor()) && !candy.isRemove();
     }
 
     public boolean shouldEndRun(List<Candy> run, Candy current){

@@ -1,20 +1,12 @@
-ุึึึ@startuml
-class logic.controller.GameController {
-}
-interface logic.explosion.ExplosionStrategy {
-~ void explode(Board,int,int,Set<Point>)
-}
-
-class logic.utils.CandyMixer {
-+ {static} ExplosionStrategy getComboExplosion(Candy,Candy)
-+ {static} boolean isStriped(CandyType)
+@startuml
+class logic.board.BoardInitializer {
+- {static} Random random
++ {static} void initialize(Board,MatchFinder,GameMode)
+- {static} void fillBoardNoInitialMatches(Board,GameMode)
+- {static} boolean isCreatingMatch(Board,int,int,CandyColor)
+- {static} CandyColor getRandomColor()
 }
 
-enum logic.controller.GameState {
-}
-class logic.utils.MatchProcessor {
-+ {static} Set<Point> processMatches(List<Set<Candy>>,Candy)
-}
 
 class logic.explosion.LineExplosion {
 - boolean isVertical
@@ -32,7 +24,161 @@ class logic.explosion.ColorBombExplosion {
 
 
 class logic.board.BoardUpdater {
+- {static} Random random
++ {static} void updateBoard(Board,Set<Point>)
+- {static} void refillBoard(Board)
+- {static} Candy generateRandomCandy(int,int)
++ {static} void shuffleBoard(Board)
+- {static} void applyGravity(Board)
+- {static} void applyGravityColumn(Board,int,int)
 }
+
+
+class application.Main {
+- {static} int ROWS
+- {static} int COLS
+- {static} int TILE_SIZE
+- GameController controller
+- GridPane gridPane
+- Label scoreLabel
+- Label moveLabel
+- BorderPane gameRoot
+- Button btnIce
+- Button btnBomb
+- Button btnStriped
+- boolean isAnimating
+- int selectedRow
+- int selectedCol
++ {static} void main(String[])
++ void start(Stage)
+- void showMainMenu(Stage)
+- void startGame(Stage,GameMode)
+- void updateItemButtons()
+- void updateView(Set<Point>)
+- void handleTileClick(int,int)
+- void handleItemClick(Item)
+- void runGameLoop(Set<Point>)
+- void checkGameOver()
+- Button createStyledButton(String,Color)
+- String toHexString(Color)
+- Color getColor(CandyColor)
+- String getTypeCode(CandyType)
+}
+
+
+class logic.explosion.CrossExplosion {
++ void explode(Board,int,int,Set<Point>)
+}
+
+class logic.candy.Candy {
+- int r
+- int c
+- boolean isRemove
+- CandyColor color
+- CandyType type
+- ExplosionStrategy explosion
+- boolean isFrozen
++ void setRow(int)
++ void setColumn(int)
++ void setIsRemove(boolean)
++ void setType(CandyType)
++ void performExplosion(Board,Set<Point>)
++ void prepareColorBomb(CandyColor)
++ int getRow()
++ int getColumn()
++ boolean isRemove()
++ CandyType getType()
++ CandyColor getColor()
++ void setColor(CandyColor)
++ boolean isFrozen()
++ void setFrozen(boolean)
+}
+
+
+class logic.explosion.ColorBombBombExplosion {
+- CandyColor targetColor
++ void setTargetColor(CandyColor)
++ void explode(Board,int,int,Set<Point>)
+}
+
+
+class logic.explosion.NukeExplosion {
++ void explode(Board,int,int,Set<Point>)
+}
+
+class logic.Item.BombItem {
+- {static} int amount
++ List<Point> use(Board,GameMode)
+}
+
+
+class logic.Item.IceBreakItem {
++ List<Point> use(Board,GameMode)
+}
+
+abstract class logic.Item.Item {
+# Random random
++ {abstract}List<Point> use(Board,GameMode)
+# List<Candy> getRandomCandy(Board,int)
+}
+
+
+class logic.controller.GameController {
+- Board board
+- MatchFinder matchFinder
+- GameState gameState
+- GameMode gameMode
+- int score
+- int moveLeft
+- Random random
+- int bombItemAmount
+- int iceItemAmount
+- int stripedItemAmount
++ void initializeGame()
++ Set<Point> handleSwap(int,int,int,int)
+- void performSwap(int,int,int,int)
++ void applyPhysics(Set<Point>)
++ Set<Point> checkChainReaction()
++ void endTurn()
++ List<Point> applyItemTransform(Item)
++ Set<Point> activateItems(List<Point>)
++ void setMoveLeft(int)
++ int getMoveLeft()
++ Board getBoard()
++ GameState getGameState()
++ int getScore()
++ GameMode getGameMode()
++ void setGameMode(GameMode)
++ int getBombItemAmount()
++ int getIceItemAmount()
++ int getStripedItemAmount()
+}
+
+
+interface logic.explosion.ExplosionStrategy {
+~ void explode(Board,int,int,Set<Point>)
+}
+
+class logic.utils.CandyMixer {
++ {static} ExplosionStrategy getComboExplosion(Candy,Candy)
++ {static} boolean isStriped(CandyType)
+}
+
+enum logic.controller.GameState {
++  PLAY
++  PROCESS
++  GAME_OVER
+}
+
+enum logic.controller.GameMode {
++  NORMAL
++  HARD
+}
+
+class logic.utils.MatchProcessor {
++ {static} Set<Point> processMatches(Board,List<Set<Candy>>,Candy)
+}
+
 class logic.board.Board {
 - int rows
 - int cols
@@ -55,19 +201,15 @@ enum logic.candy.CandyColor {
 +  NONE
 }
 
-class logic.explosion.CrossExplosion {
-+ void explode(Board,int,int,Set<Point>)
-}
-
-abstract class logic.explosion.ExplosionBase {
-+ void addAndTrigger(Board,int,int,Set<Point>)
-}
-
 class logic.explosion.AreaExplosion {
 - int radius
 + void explode(Board,int,int,Set<Point>)
 }
 
+
+abstract class logic.explosion.ExplosionBase {
++ void addAndTrigger(Board,int,int,Set<Point>)
+}
 
 enum logic.candy.CandyType {
 +  NORMAL
@@ -77,46 +219,16 @@ enum logic.candy.CandyType {
 +  COLOR_BOMB
 }
 
-class logic.candy.Candy {
-- int r
-- int c
-- boolean isRemove
-- CandyColor color
-- CandyType type
-- ExplosionStrategy explosion
-+ void setRow(int)
-+ void setColumn(int)
-+ void setIsRemove(boolean)
-+ void setType(CandyType)
-+ void performExplosion(Board,Set<Point>)
-+ void prepareColorBomb(CandyColor)
-+ int getRow()
-+ int getColumn()
-+ boolean isRemove()
-+ CandyType getType()
-+ CandyColor getColor()
+class logic.Item.StripedItem {
++ List<Point> use(Board,GameMode)
 }
 
-
-class logic.explosion.ColorBombBombExplosion {
-- CandyColor targetColor
-+ void setTargetColor(CandyColor)
-+ void explode(Board,int,int,Set<Point>)
-}
-
-
-class logic.board.BoardPhysics {
-}
-class logic.explosion.NukeExplosion {
+class logic.explosion.NormalExplosion {
 + void explode(Board,int,int,Set<Point>)
 }
 
 class logic.utils.SpecialCandyRules {
 + {static} CandyType analyzeShape(Set<Candy>)
-}
-
-class logic.explosion.NormalExplosion {
-+ void explode(Board,int,int,Set<Point>)
 }
 
 class logic.explosion.ColorStripedExplosion {
@@ -142,6 +254,8 @@ class logic.utils.MatchFinder {
 + List<Set<Candy>> mergeClusters(List<Set<Candy>>)
 + boolean checkColor(int,int,CandyColor)
 + boolean shouldEndRun(List<Candy>,Candy)
++ boolean hasPotentialMatch()
+- boolean checkVirtualSwap(int,int,int,int)
 }
 
 
@@ -149,11 +263,15 @@ class logic.utils.MatchFinder {
 
 logic.explosion.ExplosionBase <|-- logic.explosion.LineExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombExplosion
+javafx.application.Application <|-- application.Main
 logic.explosion.ExplosionBase <|-- logic.explosion.CrossExplosion
-logic.explosion.ExplosionStrategy <|.. logic.explosion.ExplosionBase
-logic.explosion.ExplosionBase <|-- logic.explosion.AreaExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombBombExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.NukeExplosion
+logic.Item.Item <|-- logic.Item.BombItem
+logic.Item.Item <|-- logic.Item.IceBreakItem
+logic.explosion.ExplosionBase <|-- logic.explosion.AreaExplosion
+logic.explosion.ExplosionStrategy <|.. logic.explosion.ExplosionBase
+logic.Item.Item <|-- logic.Item.StripedItem
 logic.explosion.ExplosionBase <|-- logic.explosion.NormalExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorStripedExplosion
 @enduml

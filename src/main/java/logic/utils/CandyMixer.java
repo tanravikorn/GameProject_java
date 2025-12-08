@@ -61,7 +61,7 @@ public class CandyMixer {
         return null;
     }
 
-    public static boolean isStriped(CandyType type){
+    private static boolean isStriped(CandyType type){
         return type == CandyType.STRIPED_HOR || type == CandyType.STRIPED_VER;
     }
 

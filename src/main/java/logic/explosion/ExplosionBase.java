@@ -18,6 +18,11 @@ public abstract class ExplosionBase implements ExplosionStrategy {
         }
         if(target.isFrozen()){
             target.setFrozen(false);
+            target.setJustMelt(true);
+            return;
+        }
+        if(target.isJustMelt()){
+            target.setJustMelt(false);
             return;
         }
         affectedCandies.add(p);

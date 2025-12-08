@@ -90,6 +90,7 @@ public class GameController {
     public void applyPhysics(Set<Point> removes) {
         BoardUpdater.updateBoard(board, removes);
     }
+
     public Set<Point> checkChainReaction() {
         Set<Point> newRemoves = new HashSet<>();
         List<Set<Candy>> matches = matchFinder.findAllMatches();

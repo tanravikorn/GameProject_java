@@ -118,7 +118,7 @@ public class GameView implements View {
         PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.3));
         waitExplosion.setOnFinished(e -> {
             try {
-                controller.boardUpdate(initialRemoves); // แก้จาก boardUpdate เป็น applyPhysics ตามโค้ด Controller เดิม
+                controller.boardUpdate(initialRemoves);
                 updateView(null);
 
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.4));
@@ -129,7 +129,12 @@ public class GameView implements View {
                         if (!chainRemoves.isEmpty()) {
                             runGameLoop(chainRemoves);
                         } else {
+                            controller.endTurn();
+
+                            updateView(null);
+
                             isAnimating = false;
+
                             checkGameOver();
                         }
                     } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }

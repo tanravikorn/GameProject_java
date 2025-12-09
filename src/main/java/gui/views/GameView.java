@@ -91,7 +91,7 @@ public class GameView implements View {
     }
 
     private void handleTileClick(int r, int c) {
-        if (isAnimating || controller.getMoveLeft() <= 0) return;
+        if (controller.getGameState() != GameState.PLAY) return;
         if (selectedRow == -1) {
             selectedRow = r; selectedCol = c; updateView(null);
             SoundManager.playSFX("click.mp3");
@@ -109,7 +109,6 @@ public class GameView implements View {
     }
 
     private void runGameLoop(Set<Point> initialRemoves) {
-        isAnimating = true;
         if (initialRemoves != null && !initialRemoves.isEmpty()) {
             SoundManager.playSFX("pop.mp3");
         }
@@ -132,15 +131,15 @@ public class GameView implements View {
                             controller.endTurn();
 
                             updateView(null);
-
-                            isAnimating = false;
+                            controller.setReadyToPlay();
+                            //isAnimating = false;
 
                             checkGameOver();
                         }
-                    } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
+                    } catch (Exception ex) { ex.printStackTrace();  }
                 });
                 waitGravity.play();
-            } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
+            } catch (Exception ex) { ex.printStackTrace(); }
         });
         waitExplosion.play();
     }

@@ -73,10 +73,9 @@ public class GameController {
         } else {
             score += removes.size() * 100;
             setMoveLeft(moveLeft-1);
+            this.gameState = GameState.PROCESS;
         }
-        if(moveLeft <= 0) {
-            gameState = GameState.GAME_OVER;
-        }
+
         return removes;
     }
 
@@ -128,6 +127,7 @@ public class GameController {
             return new ArrayList<>();
         }
         if(canUse){
+            this.gameState = GameState.PROCESS;
             return item.use(board,gameMode);
         }
         else return new ArrayList<>();
@@ -163,8 +163,12 @@ public class GameController {
         return gameMode;
     }
 
-    public void setGameMode(GameMode gameMode) {
-        this.gameMode = gameMode;
+    public void setReadyToPlay() {
+        if (moveLeft <= 0) {
+            this.gameState = GameState.GAME_OVER;
+        } else {
+            this.gameState = GameState.PLAY;
+        }
     }
     public int getBombItemAmount() {
         return bombItemAmount;
@@ -177,4 +181,5 @@ public class GameController {
     public int getStripedItemAmount() {
         return stripedItemAmount;
     }
+
 }

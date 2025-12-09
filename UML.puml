@@ -3,7 +3,7 @@ class logic.board.BoardInitializer {
 - {static} Random random
 + {static} void initialize(Board,MatchFinder,GameMode)
 - {static} void fillBoardNoInitialMatches(Board,GameMode)
-- {static} boolean isCreatingMatch(Board,int,int,CandyColor)
++ {static} boolean isCreatingMatch(Board,int,int,CandyColor)
 - {static} CandyColor getRandomColor()
 }
 
@@ -48,7 +48,7 @@ class logic.board.BoardUpdater {
 - {static} Random random
 + {static} void updateBoard(Board,Set<Point>)
 - {static} void refillBoard(Board)
-- {static} Candy generateRandomCandy(int,int)
+- {static} Candy generateRandomCandy(Board,int,int)
 + {static} void shuffleBoard(Board)
 - {static} void applyGravity(Board)
 - {static} void applyGravityColumn(Board,int,int)
@@ -159,7 +159,7 @@ class logic.controller.GameController {
 + GameState getGameState()
 + int getScore()
 + GameMode getGameMode()
-+ void setGameMode(GameMode)
++ void setReadyToPlay()
 + int getBombItemAmount()
 + int getIceItemAmount()
 + int getStripedItemAmount()

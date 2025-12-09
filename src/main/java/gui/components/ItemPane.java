@@ -9,6 +9,7 @@ import javafx.util.Duration;
 
 import logic.Item.*;
 import logic.controller.GameController;
+import logic.controller.GameState;
 import logic.utils.Point;
 
 import java.util.HashSet;
@@ -46,7 +47,7 @@ public class ItemPane extends StackPane {
     }
 
     private void handleItemClick() {
-        if (!canClick.get()) return;
+        if(controller.getGameState() == GameState.PLAY);
 
         Item itemStrategy = createItemStrategy();
         if (itemStrategy == null) return;

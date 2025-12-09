@@ -15,6 +15,10 @@ class logic.explosion.LineExplosion {
 }
 
 
+class gui.components.BoardPane {
++ void update(Board,Set<Point>,int,int,BiConsumer<Integer,Integer>)
+}
+
 class logic.explosion.ColorBombExplosion {
 - CandyColor targetColor
 + void setTargetColor(CandyColor)
@@ -35,36 +39,13 @@ class logic.board.BoardUpdater {
 
 
 class application.Main {
-- {static} int ROWS
-- {static} int COLS
-- {static} int TILE_SIZE
-- GameController controller
-- GridPane gridPane
-- Label scoreLabel
-- Label moveLabel
-- BorderPane gameRoot
-- Button btnIce
-- Button btnBomb
-- Button btnStriped
-- boolean isAnimating
-- int selectedRow
-- int selectedCol
-+ {static} void main(String[])
 + void start(Stage)
-- void showMainMenu(Stage)
-- void startGame(Stage,GameMode)
-- void updateItemButtons()
-- void updateView(Set<Point>)
-- void handleTileClick(int,int)
-- void handleItemClick(Item)
-- void runGameLoop(Set<Point>)
-- void checkGameOver()
-- Button createStyledButton(String,Color)
-- String toHexString(Color)
-- Color getColor(CandyColor)
-- String getTypeCode(CandyType)
++ {static} void main(String[])
 }
 
+interface gui.base.View {
+~ Scene getScene()
+}
 
 class logic.explosion.CrossExplosion {
 + void explode(Board,int,int,Set<Point>)
@@ -78,6 +59,7 @@ class logic.candy.Candy {
 - CandyType type
 - ExplosionStrategy explosion
 - boolean isFrozen
+- boolean isJustMelt
 + void setRow(int)
 + void setColumn(int)
 + void setIsRemove(boolean)
@@ -92,6 +74,8 @@ class logic.candy.Candy {
 + void setColor(CandyColor)
 + boolean isFrozen()
 + void setFrozen(boolean)
++ boolean isJustMelt()
++ void setJustMelt(boolean)
 }
 
 
@@ -109,6 +93,16 @@ class logic.explosion.NukeExplosion {
 class logic.Item.BombItem {
 - {static} int amount
 + List<Point> use(Board,GameMode)
+}
+
+
+class gui.components.AnimatedBackground {
+- Pane pane
+- Random random
+- Color[] colors
++ Pane getPane()
+- void createFloatingCandy()
+- void animateCandy(Circle)
 }
 
 
@@ -137,7 +131,7 @@ class logic.controller.GameController {
 + void initializeGame()
 + Set<Point> handleSwap(int,int,int,int)
 - void performSwap(int,int,int,int)
-+ void applyPhysics(Set<Point>)
++ void boardUpdate(Set<Point>)
 + Set<Point> checkChainReaction()
 + void endTurn()
 + List<Point> applyItemTransform(Item)
@@ -161,7 +155,7 @@ interface logic.explosion.ExplosionStrategy {
 
 class logic.utils.CandyMixer {
 + {static} ExplosionStrategy getComboExplosion(Candy,Candy)
-+ {static} boolean isStriped(CandyType)
+- {static} boolean isStriped(CandyType)
 }
 
 enum logic.controller.GameState {
@@ -175,9 +169,34 @@ enum logic.controller.GameMode {
 +  HARD
 }
 
+class gui.base.ViewManager {
+- {static} ViewManager instance
+- Stage mainStage
++ {static} ViewManager getInstance()
++ void setMainStage(Stage)
++ void showStartScreen()
++ void showGameScreen(GameMode)
+}
+
+
 class logic.utils.MatchProcessor {
 + {static} Set<Point> processMatches(Board,List<Set<Candy>>,Candy)
 }
+
+class gui.views.StartView {
+- Scene scene
+- void styleButton(Button,String)
++ Scene getScene()
+}
+
+
+class gui.components.CandyTile {
+- {static} int TILE_SIZE
+- void drawCandyImage(Candy)
+- String getImagePath(Candy)
+- String getTypeCode(CandyType)
+}
+
 
 class logic.board.Board {
 - int rows
@@ -218,6 +237,36 @@ enum logic.candy.CandyType {
 +  BOMB
 +  COLOR_BOMB
 }
+
+class gui.views.GameView {
+- {static} int ROWS
+- {static} int COLS
+- Scene scene
+- GameController controller
+- BoardPane boardPane
+- Label scoreLabel
+- Label moveLabel
+- Button item1Btn
+- Button item2Btn
+- Button item3Btn
+- int localItem1Count
+- int localBombCount
+- int localStripedCount
+- boolean isAnimating
+- int selectedRow
+- int selectedCol
+- Random random
+- void styleLabel(Label)
+- void styleItemButton(Button,String)
++ Scene getScene()
+- void updateView(Set<Point>)
+- void updateItemButtons()
+- void updateSingleButton(Button,String,int)
+- void handleTileClick(int,int)
+- void handleUseItem(String)
+- void runGameLoop(Set<Point>)
+}
+
 
 class logic.Item.StripedItem {
 + List<Point> use(Board,GameMode)
@@ -262,6 +311,7 @@ class logic.utils.MatchFinder {
 
 
 logic.explosion.ExplosionBase <|-- logic.explosion.LineExplosion
+javafx.scene.layout.GridPane <|-- gui.components.BoardPane
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombExplosion
 javafx.application.Application <|-- application.Main
 logic.explosion.ExplosionBase <|-- logic.explosion.CrossExplosion
@@ -269,8 +319,11 @@ logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombBombExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.NukeExplosion
 logic.Item.Item <|-- logic.Item.BombItem
 logic.Item.Item <|-- logic.Item.IceBreakItem
+gui.base.View <|.. gui.views.StartView
+javafx.scene.layout.StackPane <|-- gui.components.CandyTile
 logic.explosion.ExplosionBase <|-- logic.explosion.AreaExplosion
 logic.explosion.ExplosionStrategy <|.. logic.explosion.ExplosionBase
+gui.base.View <|.. gui.views.GameView
 logic.Item.Item <|-- logic.Item.StripedItem
 logic.explosion.ExplosionBase <|-- logic.explosion.NormalExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorStripedExplosion

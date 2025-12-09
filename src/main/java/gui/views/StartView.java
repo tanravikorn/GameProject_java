@@ -22,14 +22,13 @@ public class StartView implements View {
     public StartView() {
         StackPane root = new StackPane();
 
-        // 1. พื้นหลัง
+
         AnimatedBackground bg = new AnimatedBackground();
         root.getChildren().add(bg.getPane());
 
         VBox content = new VBox(25);
         content.setAlignment(Pos.CENTER);
 
-        // 2. ชื่อเกม
         Text title = new Text("SUPER\nCANDY");
         title.setFont(Font.font("Verdana", FontWeight.BOLD, 70));
         title.setFill(Color.WHITE); // สีขาว
@@ -37,23 +36,21 @@ public class StartView implements View {
         title.setStrokeWidth(3);
         title.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        // เงาเรืองแสง
         DropShadow shadow = new DropShadow();
         shadow.setColor(Color.web("#ff4081"));
         shadow.setRadius(20);
         title.setEffect(shadow);
 
-        // 3. ปุ่มกด
         Button normalBtn = new Button("Normal Mode");
-        styleButton(normalBtn, "#29b6f6"); // ฟ้าสดใส
+        styleButton(normalBtn, "#29b6f6");
         normalBtn.setOnAction(e -> ViewManager.getInstance().showGameScreen(GameMode.NORMAL));
 
         Button hardBtn = new Button("Hard Mode");
-        styleButton(hardBtn, "#FF9800"); // ส้ม
+        styleButton(hardBtn, "#FF9800");
         hardBtn.setOnAction(e -> ViewManager.getInstance().showGameScreen(GameMode.HARD));
 
         Button exitBtn = new Button("Exit");
-        styleButton(exitBtn, "#f44336"); // แดง
+        styleButton(exitBtn, "#f44336");
         exitBtn.setOnAction(e -> System.exit(0));
 
         content.getChildren().addAll(title, normalBtn, hardBtn, exitBtn);

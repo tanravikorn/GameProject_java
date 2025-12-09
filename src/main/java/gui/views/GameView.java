@@ -296,7 +296,7 @@ public class GameView implements View {
         PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.3));
         waitExplosion.setOnFinished(e -> {
             try {
-                controller.applyPhysics(initialRemoves);
+                controller.boardUpdate(initialRemoves);
                 updateView(null);
 
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.4));

@@ -5,9 +5,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import logic.candy.Candy;
 import logic.candy.CandyColor;
 import logic.candy.CandyType;
@@ -23,104 +20,96 @@ public class CandyTile extends StackPane {
 
         this.setOnMouseClicked(e -> onClick.accept(r, c));
 
-        // 1. วาดพื้นหลัง
+        // --- 1. วาดพื้นหลัง (Background) ---
         Rectangle bg = new Rectangle(TILE_SIZE, TILE_SIZE);
+        // ลายตาราง
         if ((r + c) % 2 == 0) {
             bg.setFill(Color.WHITE);
         } else {
-            bg.setFill(Color.web("#F0F0F0"));
+            bg.setFill(Color.web("#F5F5F5"));
         }
-        bg.setStroke(Color.BLACK);
+        bg.setStroke(Color.LIGHTGRAY);
         bg.setStrokeWidth(1);
 
+        // Highlight เมื่อถูกเลือก
         if (isSelected) {
-            bg.setFill(Color.web("#f1c40f"));
-            bg.setStroke(Color.RED);
+            bg.setFill(Color.web("#FFF9C4")); // เหลืองอ่อน
+            bg.setStroke(Color.ORANGE);
             bg.setStrokeWidth(3);
         }
         getChildren().add(bg);
 
-        // 2. วาด Candy
+        // --- 2. วาด Candy ---
         if (candy != null && !shouldHide) {
             drawCandyImage(candy);
         }
     }
 
     private void drawCandyImage(Candy candy) {
+        // ดึง Path รูปภาพตามชื่อไฟล์ที่คุณกำหนด
         String imagePath = getImagePath(candy);
 
         if (!imagePath.isEmpty()) {
             try {
-                // โหลดรูปภาพ
                 Image img = new Image(imagePath);
                 ImageView imgView = new ImageView(img);
 
-                imgView.setFitWidth(TILE_SIZE - 10);
-                imgView.setFitHeight(TILE_SIZE - 10);
+                // ปรับขนาดรูปให้เล็กลงนิดหน่อย (Padding)
+                imgView.setFitWidth(TILE_SIZE - 8);
+                imgView.setFitHeight(TILE_SIZE - 8);
                 imgView.setPreserveRatio(true);
 
                 getChildren().add(imgView);
             } catch (Exception e) {
-                // ถ้าหาไฟล์ไม่เจอ ให้ปริ้นบอก (ช่วย debug ได้ดีมาก)
-                System.out.println("Image load failed: " + imagePath);
+                System.out.println("Image not found: " + imagePath);
             }
         }
 
-        // Layer: น้ำแข็ง
+        // Layer: น้ำแข็ง (วาดทับรูปถ้ามี)
         if (candy.isFrozen()) {
             Rectangle ice = new Rectangle(TILE_SIZE, TILE_SIZE);
-            ice.setFill(Color.rgb(173, 216, 230, 0.6));
-            ice.setStroke(Color.BLUE);
+            ice.setFill(Color.rgb(176, 224, 230, 0.5)); // สีฟ้าจางๆ
+            ice.setStroke(Color.DEEPSKYBLUE);
+            ice.setStrokeWidth(2);
             getChildren().add(ice);
         }
 
-        // Layer: ตัวอักษรบอกประเภท (เฉพาะที่ไม่ใช่ Normal และ ColorBomb)
-        if (candy.getType() != CandyType.NORMAL && candy.getType() != CandyType.COLOR_BOMB) {
-            String typeText = getTypeCode(candy.getType());
-            if (!typeText.isEmpty()) {
-                Text txt = new Text(typeText);
-                txt.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-                txt.setFill(Color.WHITE);
-                txt.setStroke(Color.BLACK);
-                txt.setStrokeWidth(1.5);
-                getChildren().add(txt);
-            }
-        }
+        // *หมายเหตุ: ผมลบส่วนที่วาด Text (H, V, B) ออกแล้ว
+        // เพราะรูปภาพของคุณสื่อความหมายได้ชัดเจนแล้วครับ
     }
 
-    // --- ส่วนที่แก้ไข Path รูปภาพ ---
+    // --- Logic การสร้างชื่อไฟล์ตามกฏที่คุณกำหนด ---
     private String getImagePath(Candy candy) {
         CandyType type = candy.getType();
-
-        // กำหนดโฟลเดอร์หลัก (ถ้าโฟลเดอร์ชื่อ resources อยู่หน้าโปรเจกต์)
         String prefix = "file:resources/";
 
-        // 1. กรณี Color Bomb
+        // 1. กรณี Color Bomb (ชื่อไฟล์ตายตัว)
         if (type == CandyType.COLOR_BOMB) {
             return prefix + "color_bomb.png";
         }
 
-        String colorName = "";
+        // 2. แปลง Enum สี เป็น String (red, green, ...)
+        String colorStr = "";
         switch (candy.getColor()) {
-            case RED:    colorName = "red"; break;
-            case GREEN:  colorName = "green"; break;
-            case BLUE:   colorName = "blue"; break;
-            case YELLOW: colorName = "yellow"; break;
-            case PURPLE: colorName = "purple"; break;
-            default: return "";
+            case RED:    colorStr = "red"; break;
+            case GREEN:  colorStr = "green"; break;
+            case BLUE:   colorStr = "blue"; break;
+            case YELLOW: colorStr = "yellow"; break;
+            case PURPLE: colorStr = "purple"; break;
+            default: return ""; // ถ้าไม่มีสี (Error case)
         }
 
-        // 2. คืนค่า Path โดยรวม prefix เข้าไปด้วย
-        return prefix + colorName + ".png";
-    }
-
-    private String getTypeCode(CandyType t) {
-        if (t == null) return "";
-        switch (t) {
-            case STRIPED_HOR: return "H";
-            case STRIPED_VER: return "V";
-            case BOMB: return "B";
-            default: return "";
+        // 3. กำหนด Prefix ของชื่อไฟล์ตาม Type
+        String typePrefix = "";
+        switch (type) {
+            case NORMAL:      typePrefix = "candy_"; break; // candy_red.png
+            case STRIPED_HOR: typePrefix = "hor_";   break; // hor_red.png
+            case STRIPED_VER: typePrefix = "ver_";   break; // ver_red.png
+            case BOMB:        typePrefix = "bomb_";  break; // bomb_red.png
+            default:          typePrefix = "candy_"; break;
         }
+
+        // รวมร่าง: file:resources/ + ประเภท_ + สี + .png
+        return prefix + typePrefix + colorStr + ".png";
     }
 }

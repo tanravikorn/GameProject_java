@@ -28,26 +28,23 @@ public class ControlPane extends HBox {
 
         GameMode mode = controller.getGameMode();
 
-        // สร้าง Item 1 (Ice หรือ ColorBomb)
+
         String type1 = (mode == GameMode.HARD) ? "ICE" : "COLOR_BOMB";
         String name1 = (mode == GameMode.HARD) ? "Melt Ice" : "Color";
         int count1 = controller.getIceItemAmount();
 
         item1 = new ItemPane(type1, count1, name1, "#29b6f6", controller, canClick, onActionSuccess);
 
-        // สร้าง Item 2 (Bomb)
         item2 = new ItemPane("BOMB", controller.getBombItemAmount(), "Bomb", "#ef5350", controller, canClick, onActionSuccess);
 
-        // สร้าง Item 3 (Striped)
         item3 = new ItemPane("STRIPED", controller.getStripedItemAmount(), "Striped", "#66bb6a", controller, canClick, onActionSuccess);
 
         this.getChildren().addAll(item1, item2, item3);
     }
 
-    // ฟังก์ชันสำหรับรีเซ็ตค่าเมื่อกด Restart Game
     public void resetCounts() {
-        item1.setCount(controller.getIceItemAmount());
-        item2.setCount(controller.getBombItemAmount());
-        item3.setCount(controller.getStripedItemAmount());
+        item1.refreshCount();
+        item2.refreshCount();
+        item3.refreshCount();
     }
 }

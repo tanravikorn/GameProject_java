@@ -19,7 +19,7 @@ public class BoardInitializer {
     private static void fillBoardNoInitialMatches(Board board, GameMode gameMode){
         int rows = board.getRows();
         int cols = board.getCols();
-
+        int countIce = 0;
         for(int r =0;r < rows;r++){
             for(int c =0;c <cols;c++){
                 CandyColor color;
@@ -28,8 +28,9 @@ public class BoardInitializer {
                 }while (isCreatingMatch(board,r,c,color));
                 Candy newCandy = new Candy(r,c,color);
                 if(gameMode == GameMode.HARD){
-                    if (Math.random() < 0.25) { // โอกาส 25%
+                    if (Math.random() < 0.25 && countIce <= 12) { // โอกาส 25%
                         newCandy.setFrozen(true);
+                        countIce++;
                     }
                 }
                 board.setCandy(r,c, newCandy);

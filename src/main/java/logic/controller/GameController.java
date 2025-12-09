@@ -4,6 +4,7 @@ import logic.board.Board;
 import logic.board.BoardInitializer;
 import logic.board.BoardUpdater;
 import logic.candy.Candy;
+import logic.candy.CandyType;
 import logic.explosion.ExplosionStrategy;
 import logic.utils.CandyMixer;
 import logic.utils.MatchFinder;
@@ -136,7 +137,7 @@ public class GameController {
         Set<Point> removes = new HashSet<>();
         for(Point p : target){
             Candy candy = board.getCandy(p.r,p.c);
-            if(candy != null){
+            if(candy != null && candy.getType() != CandyType.COLOR_BOMB){
                 candy.performExplosion(board, removes);
                 score += 500;
             }

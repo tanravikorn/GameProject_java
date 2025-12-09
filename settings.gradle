@@ -13,3 +13,4 @@ plugins {
 }
 
 rootProject.name = 'CandyCrush'
+include 'src:main:resources'

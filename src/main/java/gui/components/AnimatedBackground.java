@@ -19,11 +19,8 @@ public class AnimatedBackground {
     public AnimatedBackground() {
         this.pane = new Pane();
 
-        // --- แก้ไขตรงนี้: เปลี่ยนสีพื้นหลังให้ตรงกับในเกม (#2c3e50) ---
         this.pane.setStyle("-fx-background-color: #2c3e50;");
-        // --------------------------------------------------------
 
-        // สร้างลูกกวาดลอยๆ
         for (int i = 0; i < 20; i++) {
             createFloatingCandy();
         }

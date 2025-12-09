@@ -1,5 +1,6 @@
 package gui.base;
 
+import gui.views.EndView;
 import gui.views.GameView;
 import gui.views.StartView;
 import javafx.stage.Stage;
@@ -21,6 +22,7 @@ public class ViewManager {
     }
 
     public void showStartScreen() {
+        SoundManager.playBGM("start.mp3");
         StartView startView = new StartView();
         mainStage.setScene(startView.getScene());
         mainStage.setTitle("Candy Crush Clone - Menu");
@@ -28,8 +30,15 @@ public class ViewManager {
     }
 
     public void showGameScreen(GameMode mode) {
+        SoundManager.playBGM("game.mp3");
         GameView gameView = new GameView(mode);
         mainStage.setScene(gameView.getScene());
         mainStage.setTitle("Candy Crush Clone - Playing (" + mode + ")");
+    }
+    public void showEndScreen(int score) {
+        SoundManager.playBGM("end.mp3");
+        EndView endView = new EndView(score);
+        mainStage.setScene(endView.getScene());
+        mainStage.setTitle("Game Over");
     }
 }

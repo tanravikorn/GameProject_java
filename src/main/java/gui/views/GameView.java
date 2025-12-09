@@ -1,14 +1,14 @@
 package gui.views;
 
+import gui.base.SoundManager;
 import gui.base.View;
-import gui.base.ViewManager;
+import gui.base.ViewManager; // 🔥 Import เพิ่ม
 import gui.components.BoardPane;
-import gui.components.ControlPane; // Import Class ใหม่
+import gui.components.ControlPane;
 import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -18,6 +18,7 @@ import javafx.util.Duration;
 
 import logic.controller.GameController;
 import logic.controller.GameMode;
+import logic.controller.GameState; // 🔥 Import เพิ่ม
 import logic.utils.Point;
 
 import java.util.Set;
@@ -30,7 +31,7 @@ public class GameView implements View {
     private final Scene scene;
     private GameController controller;
     private BoardPane boardPane;
-    private ControlPane controlPane; // ใช้แทนปุ่ม Item แยกๆ
+    private ControlPane controlPane;
 
     private Label scoreLabel;
     private Label moveLabel;
@@ -45,12 +46,10 @@ public class GameView implements View {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: #2c3e50;");
 
-        // --- Center: Board ---
         boardPane = new BoardPane();
         root.setCenter(boardPane);
         BorderPane.setAlignment(boardPane, Pos.CENTER);
 
-        // --- Top: HUD ---
         BorderPane topPanel = new BorderPane();
         topPanel.setPadding(new Insets(15, 20, 15, 20));
         topPanel.setStyle("-fx-background-color: rgba(0,0,0,0.3);");
@@ -65,15 +64,10 @@ public class GameView implements View {
 
         root.setTop(topPanel);
 
-        // --- Bottom: ControlPane (Clean!) ---
-        // เราส่ง:
-        // 1. controller
-        // 2. เงื่อนไขการคลิก (() -> !isAnimating)
-        // 3. สิ่งที่ต้องทำเมื่อใช้ไอเทมสำเร็จ (this::runGameLoop)
         controlPane = new ControlPane(
                 controller,
-                () -> !isAnimating,  // canClick?
-                this::runGameLoop    // onSuccess
+                () -> !isAnimating,
+                this::runGameLoop
         );
         root.setBottom(controlPane);
 
@@ -93,11 +87,12 @@ public class GameView implements View {
         boardPane.update(controller.getBoard(), animateCandidates, selectedRow, selectedCol, this::handleTileClick);
         scoreLabel.setText("Score: " + controller.getScore());
         moveLabel.setText("Moves: " + controller.getMoveLeft());
-        // ไม่ต้อง updateItemButtons() ที่นี่แล้ว เพราะ ItemPane จัดการตัวเอง
+        if(controlPane != null) controlPane.resetCounts();
     }
 
     private void handleTileClick(int r, int c) {
         if (isAnimating || controller.getMoveLeft() <= 0) return;
+        SoundManager.playSFX("click.mp3");
         if (selectedRow == -1) {
             selectedRow = r; selectedCol = c; updateView(null);
         } else {
@@ -112,27 +107,42 @@ public class GameView implements View {
         }
     }
 
-    // *** ไม่ต้องมี handleUseItem แล้ว เพราะย้ายไป ItemPane ***
-
     private void runGameLoop(Set<Point> initialRemoves) {
         isAnimating = true;
+        if (initialRemoves != null && !initialRemoves.isEmpty()) {
+            SoundManager.playSFX("pop.mp3");
+        }
         updateView(initialRemoves);
+
         PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.3));
         waitExplosion.setOnFinished(e -> {
             try {
-                controller.boardUpdate(initialRemoves);
+                controller.boardUpdate(initialRemoves); // แก้จาก boardUpdate เป็น applyPhysics ตามโค้ด Controller เดิม
                 updateView(null);
+
                 PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.4));
                 waitGravity.setOnFinished(e2 -> {
                     try {
                         Set<Point> chainRemoves = controller.checkChainReaction();
-                        if (!chainRemoves.isEmpty()) runGameLoop(chainRemoves);
-                        else isAnimating = false;
+
+                        if (!chainRemoves.isEmpty()) {
+                            runGameLoop(chainRemoves);
+                        } else {
+                            isAnimating = false;
+                            System.out.println("--- Board Settled ---");
+                            checkGameOver();
+                        }
                     } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
                 });
                 waitGravity.play();
             } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }
         });
         waitExplosion.play();
+    }
+
+    private void checkGameOver() {
+        if (controller.getGameState() == GameState.GAME_OVER) {
+            ViewManager.getInstance().showEndScreen(controller.getScore());
+        }
     }
 }

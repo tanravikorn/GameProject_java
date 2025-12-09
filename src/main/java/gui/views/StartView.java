@@ -1,5 +1,6 @@
 package gui.views;
 
+import gui.base.SoundManager;
 import gui.base.View;
 import gui.base.ViewManager;
 import gui.components.AnimatedBackground;
@@ -22,7 +23,6 @@ public class StartView implements View {
     public StartView() {
         StackPane root = new StackPane();
 
-
         AnimatedBackground bg = new AnimatedBackground();
         root.getChildren().add(bg.getPane());
 
@@ -43,15 +43,24 @@ public class StartView implements View {
 
         Button normalBtn = new Button("Normal Mode");
         styleButton(normalBtn, "#29b6f6");
-        normalBtn.setOnAction(e -> ViewManager.getInstance().showGameScreen(GameMode.NORMAL));
+        normalBtn.setOnAction(e -> {
+            SoundManager.playSFX("select.mp3");
+            ViewManager.getInstance().showGameScreen(GameMode.NORMAL);
+        });
 
         Button hardBtn = new Button("Hard Mode");
         styleButton(hardBtn, "#FF9800");
-        hardBtn.setOnAction(e -> ViewManager.getInstance().showGameScreen(GameMode.HARD));
+        hardBtn.setOnAction(e -> {
+            SoundManager.playSFX("select.mp3");
+            ViewManager.getInstance().showGameScreen(GameMode.HARD);
+        });
 
         Button exitBtn = new Button("Exit");
         styleButton(exitBtn, "#f44336");
-        exitBtn.setOnAction(e -> System.exit(0));
+        exitBtn.setOnAction(e -> {
+            SoundManager.playSFX("select.mp3");
+            System.exit(0);
+        });
 
         content.getChildren().addAll(title, normalBtn, hardBtn, exitBtn);
         root.getChildren().add(content);

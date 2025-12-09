@@ -30,7 +30,6 @@ public class BoardPane extends GridPane {
                         animateCandidates.contains(new Point(r, c)));
                 boolean isSelected = (r == selectedRow && c == selectedCol);
 
-                // ส่ง onTileClick เข้าไปใน Constructor เลย
                 CandyTile tile = new CandyTile(r, c, board.getCandy(r, c), isSelected, shouldHide, onTileClick);
 
                 this.add(tile, c, r);

@@ -74,8 +74,6 @@ public class ItemPane extends StackPane {
                     onActionSuccess.accept(new HashSet<>());
                 }
             }
-        } else {
-            System.out.println("Item usage failed (Out of stock or No targets)");
         }
     }
     private boolean isInstantItem() {

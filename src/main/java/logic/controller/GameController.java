@@ -135,6 +135,7 @@ public class GameController {
     }
 
     public Set<Point> activateItems(List<Point> target){
+        this.gameState = GameState.PROCESS;
         Set<Point> removes = new HashSet<>();
         for(Point p : target){
             Candy candy = board.getCandy(p.r,p.c);

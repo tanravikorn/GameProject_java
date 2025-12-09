@@ -108,6 +108,10 @@ public class GameView implements View {
     }
 
     private void runGameLoop(Set<Point> initialRemoves) {
+        if (initialRemoves != null && initialRemoves.isEmpty()) {
+            updateView(null);
+            return; //
+        }
         if (initialRemoves != null && !initialRemoves.isEmpty()) {
             SoundManager.playSFX("pop.mp3");
         }

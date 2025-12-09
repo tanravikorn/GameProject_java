@@ -46,7 +46,7 @@ public class ItemPane extends StackPane {
     }
 
     private void handleItemClick() {
-        if(controller.getGameState() == GameState.PLAY);
+        if (controller.getGameState() != GameState.PLAY) return;
 
         Item itemStrategy = createItemStrategy();
         if (itemStrategy == null) return;

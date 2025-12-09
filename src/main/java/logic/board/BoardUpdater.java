@@ -6,6 +6,8 @@ import logic.utils.Point;
 
 import java.util.*;
 
+import static logic.board.BoardInitializer.isCreatingMatch;
+
 public class BoardUpdater {
 
     private static final Random random = new Random();
@@ -31,13 +33,13 @@ public class BoardUpdater {
         for(int c =0;c <cols;c++){
             for(int r =0;r <rows;r++){
                 if(board.getCandy(r,c) == null){
-                    Candy newCandy = generateRandomCandy(r,c);
+                    Candy newCandy = generateRandomCandy(board,r,c);
                     board.setCandy(r,c,newCandy);
                 }
             }
         }
     }
-    private static Candy generateRandomCandy(int r, int c){
+    private static Candy generateRandomCandy(Board board,int r, int c){
         CandyColor[] colors = {
                 CandyColor.PURPLE,
                 CandyColor.YELLOW,
@@ -45,8 +47,11 @@ public class BoardUpdater {
                 CandyColor.BLUE,
                 CandyColor.GREEN
         };
-        CandyColor randomCandy = colors[random.nextInt(colors.length)];
-        return new Candy(r,c, randomCandy);
+        CandyColor color;
+        do{
+            color = colors[random.nextInt(colors.length)];
+        }while (isCreatingMatch(board,r,c,color));
+        return new Candy(r,c, color);
     }
 
     public static void shuffleBoard(Board board){

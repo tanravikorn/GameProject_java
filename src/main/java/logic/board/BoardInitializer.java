@@ -38,7 +38,7 @@ public class BoardInitializer {
         }
     }
 
-    private static boolean isCreatingMatch(Board board, int r, int c, CandyColor color){
+    public static boolean isCreatingMatch(Board board, int r, int c, CandyColor color){
         if(c >= 2){
             Candy c1  = board.getCandy(r,c-1);
             Candy c2  = board.getCandy(r,c-2);

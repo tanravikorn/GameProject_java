@@ -26,14 +26,13 @@ public class ItemPane extends StackPane {
     private final Button button;
 
     private final Consumer<Set<Point>> onActionSuccess;
-    private final Supplier<Boolean> canClick;
+
 
     public ItemPane(String itemType, int initialCount, String displayName, String colorHex,
-                    GameController controller, Supplier<Boolean> canClick, Consumer<Set<Point>> onActionSuccess) {
+                    GameController controller, Consumer<Set<Point>> onActionSuccess) {
         this.itemType = itemType;
         this.count = initialCount;
         this.controller = controller;
-        this.canClick = canClick;
         this.onActionSuccess = onActionSuccess;
 
         this.button = new Button();

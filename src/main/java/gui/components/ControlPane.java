@@ -33,11 +33,11 @@ public class ControlPane extends HBox {
         String name1 = (mode == GameMode.HARD) ? "Melt Ice" : "Color";
         int count1 = controller.getIceItemAmount();
 
-        item1 = new ItemPane(type1, count1, name1, "#29b6f6", controller, canClick, onActionSuccess);
+        item1 = new ItemPane(type1, count1, name1, "#29b6f6", controller,  onActionSuccess);
 
-        item2 = new ItemPane("BOMB", controller.getBombItemAmount(), "Bomb", "#ef5350", controller, canClick, onActionSuccess);
+        item2 = new ItemPane("BOMB", controller.getBombItemAmount(), "Bomb", "#ef5350", controller, onActionSuccess);
 
-        item3 = new ItemPane("STRIPED", controller.getStripedItemAmount(), "Striped", "#66bb6a", controller, canClick, onActionSuccess);
+        item3 = new ItemPane("STRIPED", controller.getStripedItemAmount(), "Striped", "#66bb6a", controller, onActionSuccess);
 
         this.getChildren().addAll(item1, item2, item3);
     }

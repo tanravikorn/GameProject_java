@@ -1,4 +1,4 @@
-package explosion;
+package test.explosion;
 import logic.board.Board;
 import logic.candy.Candy;
 import logic.candy.CandyColor;

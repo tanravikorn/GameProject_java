@@ -1,4 +1,4 @@
-package candy;
+package test.candy;
 
 import logic.board.Board;
 import logic.candy.Candy;

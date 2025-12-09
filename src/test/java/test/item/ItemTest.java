@@ -1,4 +1,4 @@
-package item;
+package test.item;
 import logic.Item.BombItem;
 import logic.Item.IceBreakItem;
 import logic.Item.Item;

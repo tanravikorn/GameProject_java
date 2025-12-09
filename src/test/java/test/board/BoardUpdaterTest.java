@@ -1,4 +1,4 @@
-package board;
+package test.board;
 import logic.board.Board;
 import logic.board.BoardUpdater;
 import logic.candy.Candy;

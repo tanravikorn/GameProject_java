@@ -1,4 +1,4 @@
-package gamecontroller;
+package test.gamecontroller;
 
 import logic.Item.BombItem;
 import logic.board.Board;

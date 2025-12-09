@@ -1,4 +1,4 @@
-package utils;
+package test.utils;
 
 import logic.utils.Point;
 import org.junit.jupiter.api.Test;

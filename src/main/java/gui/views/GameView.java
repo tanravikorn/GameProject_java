@@ -2,7 +2,7 @@ package gui.views;
 
 import gui.base.SoundManager;
 import gui.base.View;
-import gui.base.ViewManager; // 🔥 Import เพิ่ม
+import gui.base.ViewManager;
 import gui.components.BoardPane;
 import gui.components.ControlPane;
 import javafx.animation.PauseTransition;
@@ -18,7 +18,7 @@ import javafx.util.Duration;
 
 import logic.controller.GameController;
 import logic.controller.GameMode;
-import logic.controller.GameState; // 🔥 Import เพิ่ม
+import logic.controller.GameState;
 import logic.utils.Point;
 
 import java.util.Set;

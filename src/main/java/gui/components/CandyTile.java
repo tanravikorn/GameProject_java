@@ -6,7 +6,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import logic.candy.Candy;
-import logic.candy.CandyColor;
 import logic.candy.CandyType;
 
 import java.util.function.BiConsumer;

@@ -129,7 +129,6 @@ public class GameView implements View {
                             runGameLoop(chainRemoves);
                         } else {
                             isAnimating = false;
-                            System.out.println("--- Board Settled ---");
                             checkGameOver();
                         }
                     } catch (Exception ex) { ex.printStackTrace(); isAnimating = false; }

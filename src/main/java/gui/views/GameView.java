@@ -36,7 +36,6 @@ public class GameView implements View {
     private Label scoreLabel;
     private Label moveLabel;
 
-    private boolean isAnimating = false;
     private int selectedRow = -1;
     private int selectedCol = -1;
 
@@ -66,7 +65,7 @@ public class GameView implements View {
 
         controlPane = new ControlPane(
                 controller,
-                () -> !isAnimating,
+                () -> controller.getGameState() == GameState.PLAY,
                 this::runGameLoop
         );
         root.setBottom(controlPane);
@@ -132,7 +131,6 @@ public class GameView implements View {
 
                             updateView(null);
                             controller.setReadyToPlay();
-                            //isAnimating = false;
 
                             checkGameOver();
                         }

@@ -98,6 +98,7 @@ public class GameController {
         if (!matches.isEmpty()) {
             newRemoves.addAll(MatchProcessor.processMatches(board,matches, null));
             score += newRemoves.size() * 100;
+            this.gameState = GameState.PROCESS;
         }
         return newRemoves;
     }

@@ -8,6 +8,23 @@ class logic.board.BoardInitializer {
 }
 
 
+class gui.components.ItemPane {
+- String itemType
+- int count
+- GameController controller
+- Button button
+- Consumer<Set<Point>> onActionSuccess
+- Supplier<Boolean> canClick
+- void handleItemClick()
+- boolean isInstantItem()
+- Item createItemStrategy()
++ void refreshCount()
++ void updateState()
++ void updateButtonText(String)
+- void styleButton(String)
+}
+
+
 class logic.explosion.LineExplosion {
 - boolean isVertical
 - int blastRadius
@@ -153,10 +170,26 @@ interface logic.explosion.ExplosionStrategy {
 ~ void explode(Board,int,int,Set<Point>)
 }
 
+class gui.views.EndView {
+- Scene scene
++ Scene getScene()
+- void styleButton(Button,String)
+}
+
+
 class logic.utils.CandyMixer {
 + {static} ExplosionStrategy getComboExplosion(Candy,Candy)
 - {static} boolean isStriped(CandyType)
 }
+
+class gui.components.ControlPane {
+- ItemPane item1
+- ItemPane item2
+- ItemPane item3
+- GameController controller
++ void resetCounts()
+}
+
 
 enum logic.controller.GameState {
 +  PLAY
@@ -176,6 +209,7 @@ class gui.base.ViewManager {
 + void setMainStage(Stage)
 + void showStartScreen()
 + void showGameScreen(GameMode)
++ void showEndScreen(int)
 }
 
 
@@ -194,7 +228,14 @@ class gui.components.CandyTile {
 - {static} int TILE_SIZE
 - void drawCandyImage(Candy)
 - String getImagePath(Candy)
-- String getTypeCode(CandyType)
+}
+
+
+class gui.base.SoundManager {
+- {static} MediaPlayer bgmPlayer
++ {static} void playBGM(String)
++ {static} void stopBGM()
++ {static} void playSFX(String)
 }
 
 
@@ -244,27 +285,18 @@ class gui.views.GameView {
 - Scene scene
 - GameController controller
 - BoardPane boardPane
+- ControlPane controlPane
 - Label scoreLabel
 - Label moveLabel
-- Button item1Btn
-- Button item2Btn
-- Button item3Btn
-- int localItem1Count
-- int localBombCount
-- int localStripedCount
 - boolean isAnimating
 - int selectedRow
 - int selectedCol
-- Random random
 - void styleLabel(Label)
-- void styleItemButton(Button,String)
 + Scene getScene()
 - void updateView(Set<Point>)
-- void updateItemButtons()
-- void updateSingleButton(Button,String,int)
 - void handleTileClick(int,int)
-- void handleUseItem(String)
 - void runGameLoop(Set<Point>)
+- void checkGameOver()
 }
 
 
@@ -310,6 +342,7 @@ class logic.utils.MatchFinder {
 
 
 
+javafx.scene.layout.StackPane <|-- gui.components.ItemPane
 logic.explosion.ExplosionBase <|-- logic.explosion.LineExplosion
 javafx.scene.layout.GridPane <|-- gui.components.BoardPane
 logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombExplosion
@@ -319,6 +352,8 @@ logic.explosion.ExplosionBase <|-- logic.explosion.ColorBombBombExplosion
 logic.explosion.ExplosionBase <|-- logic.explosion.NukeExplosion
 logic.Item.Item <|-- logic.Item.BombItem
 logic.Item.Item <|-- logic.Item.IceBreakItem
+gui.base.View <|.. gui.views.EndView
+javafx.scene.layout.HBox <|-- gui.components.ControlPane
 gui.base.View <|.. gui.views.StartView
 javafx.scene.layout.StackPane <|-- gui.components.CandyTile
 logic.explosion.ExplosionBase <|-- logic.explosion.AreaExplosion

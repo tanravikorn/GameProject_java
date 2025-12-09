@@ -2,7 +2,7 @@ package gui.views;
 
 import gui.base.View;
 import gui.base.ViewManager;
-import gui.components.AnimatedBackground; // ใช้พื้นหลังเดิมให้สวยงาม
+import gui.components.AnimatedBackground;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -79,7 +79,9 @@ public class EndView implements View {
                         "-fx-padding: 10 30 10 30;" +
                         "-fx-cursor: hand;"
         );
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: white; -fx-text-fill: " + colorHex + "; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25; -fx-padding: 10 30 10 30; -fx-cursor: hand;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + colorHex + "; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25; -fx-padding: 10 30 10 30; -fx-cursor: hand;"));
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: white; -fx-text-fill: " +
+                colorHex + "; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25; -fx-padding: 10 30 10 30; -fx-cursor: hand;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " +
+                colorHex + "; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25; -fx-padding: 10 30 10 30; -fx-cursor: hand;"));
     }
 }

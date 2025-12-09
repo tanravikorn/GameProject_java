@@ -77,7 +77,7 @@ public class StartView implements View {
                         "-fx-background-radius: 30;" +
                         "-fx-padding: 12 40 12 40;" +
                         "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);" // เพิ่มเงาให้ปุ่มดูมีมิติ
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);"
         );
         btn.setPrefWidth(250);
     }

@@ -92,9 +92,9 @@ public class GameView implements View {
 
     private void handleTileClick(int r, int c) {
         if (isAnimating || controller.getMoveLeft() <= 0) return;
-        SoundManager.playSFX("click.mp3");
         if (selectedRow == -1) {
             selectedRow = r; selectedCol = c; updateView(null);
+            SoundManager.playSFX("click.mp3");
         } else {
             if (Math.abs(selectedRow - r) + Math.abs(selectedCol - c) == 1) {
                 Set<Point> matchResults = controller.handleSwap(selectedRow, selectedCol, r, c);
@@ -103,6 +103,7 @@ public class GameView implements View {
                 else updateView(null);
             } else {
                 selectedRow = r; selectedCol = c; updateView(null);
+                SoundManager.playSFX("click.mp3");
             }
         }
     }

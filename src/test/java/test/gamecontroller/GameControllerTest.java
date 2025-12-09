@@ -106,8 +106,9 @@ public class GameControllerTest {
 
         assertEquals(1, controller.getBombItemAmount());
         assertNotNull(affects);
-
+        controller.setReadyToPlay();
         controller.applyItemTransform(new BombItem());
+        controller.setReadyToPlay();
         assertEquals(0, controller.getBombItemAmount());
 
         List<Point> affectsEmpty = controller.applyItemTransform(new BombItem());

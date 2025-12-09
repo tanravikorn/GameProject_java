@@ -75,7 +75,9 @@ public class GameController {
             setMoveLeft(moveLeft-1);
             this.gameState = GameState.PROCESS;
         }
-
+        if(moveLeft <=0){
+            gameState = GameState.GAME_OVER;
+        }
         return removes;
     }
 

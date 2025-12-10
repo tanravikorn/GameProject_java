@@ -71,6 +71,8 @@ public class ItemPane extends StackPane {
             else {
                 if (onActionSuccess != null) {
                     onActionSuccess.accept(new HashSet<>());
+
+                    controller.setReadyToPlay();
                 }
             }
         }

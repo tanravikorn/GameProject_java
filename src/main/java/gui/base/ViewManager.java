@@ -25,7 +25,7 @@ public class ViewManager {
         SoundManager.playBGM("start.mp3");
         StartView startView = new StartView();
         mainStage.setScene(startView.getScene());
-        mainStage.setTitle("Candy Crush Clone - Menu");
+        mainStage.setTitle("Super Candy - Menu");
         mainStage.show();
     }
 
@@ -33,7 +33,7 @@ public class ViewManager {
         SoundManager.playBGM("game.mp3");
         GameView gameView = new GameView(mode);
         mainStage.setScene(gameView.getScene());
-        mainStage.setTitle("Candy Crush Clone - Playing (" + mode + ")");
+        mainStage.setTitle("Super Candy - Playing (" + mode + ")");
     }
     public void showEndScreen(int score) {
         SoundManager.playBGM("end.mp3");

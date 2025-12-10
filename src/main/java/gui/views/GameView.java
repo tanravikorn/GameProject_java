@@ -113,28 +113,38 @@ public class GameView implements View {
             updateView(null);
             return;
         }
-        if (initialRemoves != null && !initialRemoves.isEmpty()) {
-            SoundManager.playSFX("pop.mp3");
-        }
-        updateView(initialRemoves);
+//        if (initialRemoves != null && !initialRemoves.isEmpty()) {
+//            SoundManager.playSFX("pop.mp3");
+//        }
 
-        if (initialRemoves != null && !initialRemoves.isEmpty()) {
-            SoundManager.playSFX("pop.mp3");
-        }
-        updateView(initialRemoves);
+        updateView(null);
 
-        new Thread(()-> {
+        new Thread(() -> {
             try {
-                Thread.sleep(300);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            Platform.runLater(()->{
+
+            Platform.runLater(() -> {
+                if (initialRemoves != null && !initialRemoves.isEmpty()) {
+                    SoundManager.playSFX("pop.mp3");
+                }
+                updateView(initialRemoves);
+            });
+
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            Platform.runLater(() -> {
                 controller.boardUpdate(initialRemoves);
                 updateView(null);
             });
             try {
-                Thread.sleep(400);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -144,20 +154,32 @@ public class GameView implements View {
                 if (!chainRemoves.isEmpty()) {
                     Platform.runLater(() -> runGameLoop(chainRemoves));
                 } else {
-                    Platform.runLater(()->{
+                    Platform.runLater(() -> {
                         controller.endTurn();
                         updateView(null);
                         controller.setReadyToPlay();
                         checkGameOver();
                     });
                 }
-            } catch (Exception ex) { ex.printStackTrace();  }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }).start();
     }
 
     private void checkGameOver() {
         if (controller.getGameState() == GameState.GAME_OVER) {
-            ViewManager.getInstance().showEndScreen(controller.getScore());
+            new Thread(()->{
+                try {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                Platform.runLater(()->{
+                    ViewManager.getInstance().showEndScreen(controller.getScore());
+                });
+            }).start();
         }
     }
 }

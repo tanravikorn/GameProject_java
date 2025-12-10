@@ -6,6 +6,7 @@ import gui.base.ViewManager;
 import gui.components.BoardPane;
 import gui.components.ControlPane;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -110,40 +111,48 @@ public class GameView implements View {
     private void runGameLoop(Set<Point> initialRemoves) {
         if (initialRemoves != null && initialRemoves.isEmpty()) {
             updateView(null);
-            return; //
+            return;
         }
         if (initialRemoves != null && !initialRemoves.isEmpty()) {
             SoundManager.playSFX("pop.mp3");
         }
         updateView(initialRemoves);
 
-        PauseTransition waitExplosion = new PauseTransition(Duration.seconds(0.3));
-        waitExplosion.setOnFinished(e -> {
+        if (initialRemoves != null && !initialRemoves.isEmpty()) {
+            SoundManager.playSFX("pop.mp3");
+        }
+        updateView(initialRemoves);
+
+        new Thread(()-> {
             try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            Platform.runLater(()->{
                 controller.boardUpdate(initialRemoves);
                 updateView(null);
+            });
+            try {
+                Thread.sleep(400);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                Set<Point> chainRemoves = controller.checkChainReaction();
 
-                PauseTransition waitGravity = new PauseTransition(Duration.seconds(0.4));
-                waitGravity.setOnFinished(e2 -> {
-                    try {
-                        Set<Point> chainRemoves = controller.checkChainReaction();
-
-                        if (!chainRemoves.isEmpty()) {
-                            runGameLoop(chainRemoves);
-                        } else {
-                            controller.endTurn();
-
-                            updateView(null);
-                            controller.setReadyToPlay();
-
-                            checkGameOver();
-                        }
-                    } catch (Exception ex) { ex.printStackTrace();  }
-                });
-                waitGravity.play();
-            } catch (Exception ex) { ex.printStackTrace(); }
-        });
-        waitExplosion.play();
+                if (!chainRemoves.isEmpty()) {
+                    Platform.runLater(() -> runGameLoop(chainRemoves));
+                } else {
+                    Platform.runLater(()->{
+                        controller.endTurn();
+                        updateView(null);
+                        controller.setReadyToPlay();
+                        checkGameOver();
+                    });
+                }
+            } catch (Exception ex) { ex.printStackTrace();  }
+        }).start();
     }
 
     private void checkGameOver() {

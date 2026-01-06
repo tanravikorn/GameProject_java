@@ -65,6 +65,7 @@ public class BoardInitializerTest {
         assertTrue(foundIce);
     }
 
+
     @Test
     void canMoveTest(){
         BoardInitializer.initialize(board,matchFinder, GameMode.NORMAL);
